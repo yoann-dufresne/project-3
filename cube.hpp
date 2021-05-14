@@ -8,7 +8,7 @@
 class Face {
 private:
 	bool is_init;
-	// bool changed;
+	int rotation;
 	Adafruit_NeoTrellis * trellis;
 public:
 	Face();

@@ -12,20 +12,15 @@ void setup() {
     delay(10);
 
   cube.init();
-
-  for (int i=0 ; i<4 ; i++) {
-    cube.faces[i].set_pixel(0, 0, 0, 0, 50);
-    cube.faces[i].set_pixel(0, i, 0, 0, 50);
-  }
-  cube.faces[4].set_pixel(0, 0, 0, 0, 50);
-  cube.faces[4].set_pixel(1, 0, 0, 0, 50);
-  cube.faces[5].set_pixel(0, 0, 0, 0, 50);
-  cube.faces[5].set_pixel(1, 1, 0, 0, 50);
-
-  cube.show();
 }
 
 
 void loop() {
-  delay(500);
+  for (int i=0 ; i<6 ; i++)
+    cube.faces[i].see_idx(i);
+  cube.show();
+  delay(1000);
+  cube.reset_leds();
+  cube.show();
+  delay(1000);
 }

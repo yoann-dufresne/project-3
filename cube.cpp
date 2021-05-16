@@ -1,9 +1,6 @@
-#include <stdint.h>
 #include <math.h>
 
 #include "cube.hpp"
-
-#define PI 3.14159265
 
 
 void rot(int & row, int & col, int rotation) {
@@ -25,9 +22,6 @@ void rot(int & row, int & col, int rotation) {
 
 	row = r2;
 	col = c2;
-
-	// Serial.print(row); Serial.print(" "); Serial.print(col); Serial.print(" "); Serial.println(rotation);
-	// Serial.print(r2); Serial.print(" "); Serial.println(c2); Serial.println();
 }
 
 
@@ -76,13 +70,13 @@ void Face::get_pixel(int row, int col, int & r, int & g, int & b) {
 	r = (color >> 16) & 0xFF;
 }
 
-void Face::add_pixel_color(int row, int col, int & r, int & g, int & b) {
+void Face::add_pixel_color(int row, int col, int r, int g, int b) {
 	int rp, gp, bp;
 	this->get_pixel(row, col, rp, gp, bp);
 	this->set_pixel(row, col, max(r, rp), max(g, gp), max(b, bp));
 }
 
-void Face::rm_pixel_color(int row, int col, int & r, int & g, int & b) {
+void Face::rm_pixel_color(int row, int col, int r, int g, int b) {
 	int rp, gp, bp;
 	this->get_pixel(row, col, rp, gp, bp);
 	this->set_pixel(row, col, min(r, rp), min(g, gp), min(b, bp));
@@ -107,6 +101,22 @@ void Face::see_idx(int idx) {
 	this->set_pixel(idx/4, idx%4, 0, 0, 50);
 }
 
+void Face::activate_btn(int row, int col, uint8_t event) {
+	this->trellis->activateKey(row * 4 + col, event);
+}
+
+void Face::deactivate_btn(int row, int col, uint8_t event) {
+	this->trellis->activateKey(row * 4 + col, event, false);
+}
+
+void Face::bind_btn_callback(int row, int col, TrellisCallback cb) {
+	this->trellis->registerCallback(row * 4 + col, cb);
+}
+
+void Face::unbind_btn_callback(int row, int col) {
+	this->trellis->unregisterCallback(row * 4 + col);
+}
+
 
 
 
@@ -114,11 +124,20 @@ Cube::Cube() {}
 
 void Cube::init() {
 	Serial.println("Cube init");
+	// Init faces
 	int addrs[6] = {0x2E, 0x2F, 0x30, 0x36, 0x32, 0x3E};
 	int rotations[6] = {2, 0, 3, 1, 3, 1};
 	for (int i=0 ; i<6 ; i++) {
 		this->faces[i].init(addrs[i], rotations[i]);
 	}
+
+	// Init interuption pin
+	pinMode(INT_PIN, INPUT);
+}
+
+void Cube::read(bool pooling) {
+	for (int i=0 ; i<6 ; i++)
+    this->faces[i].trellis->read(pooling);
 }
 
 void Cube::show() {
@@ -151,7 +170,7 @@ void Cube::next_tile(int & face, int & row, int & col, int direction) {
 		if (row == -1) {
 			face = 3 * (face / 3) + ((face + 1) % 3);
 			row = col;
-			col = 3;
+			col = 0;
 		}
 		break;
 

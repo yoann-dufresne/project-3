@@ -1,8 +1,12 @@
 #ifndef CUBE_H
 #define CUBE_H
 
+#include <stdint.h>
+
 #include "Arduino.h"
 #include "Adafruit_NeoTrellis.h"
+
+#define INT_PIN 10
 
 
 class Face {
@@ -10,6 +14,8 @@ private:
 	bool is_init;
 	int rotation;
 	Adafruit_NeoTrellis * trellis;
+
+  friend class Cube;
 public:
 	Face();
   void init(int addr, int rotation);
@@ -19,13 +25,18 @@ public:
   // Get the rgb colors of one pixel
   void get_pixel(int row, int col, int & r, int & g, int & b);
   // Add the rgb colors to the current colors of a pixel. ie: for each color max between the current value and the value added.
-  void add_pixel_color(int row, int col, int & r, int & g, int & b);
+  void add_pixel_color(int row, int col, int r, int g, int b);
   // Rm the rgb colors to the current colors of a pixel. ie: for each color min between the current value and the value added.
-  void rm_pixel_color(int row, int col, int & r, int & g, int & b);
+  void rm_pixel_color(int row, int col, int r, int g, int b);
 
   void show();
   void reset_leds();
   void see_idx(int idx);
+
+  void activate_btn(int row, int col, uint8_t event);
+  void deactivate_btn(int row, int col, uint8_t event);
+  void bind_btn_callback(int row, int col, TrellisCallback cb);
+  void unbind_btn_callback(int row, int col);
 };
 
 
@@ -35,6 +46,7 @@ public:
 
   Cube();
   void init();
+  void read(bool pooling);
 
   void show();
   void reset_leds();

@@ -55,7 +55,7 @@ void hero_mv_east(keyEvent evt) {
 }
 
 void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
-	Serial.println("Move");
+	// Serial.println("Move");
 	int face = coordinates[0];
 	int row = coordinates[1];
 	int col = coordinates[2];
@@ -79,7 +79,10 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		this->cube.faces[button_face].unbind_btn_callback(button_row, button_col);
 
 		// Remove coridor color
+		// Serial.print("rm ");Serial.print(button_face);Serial.print(" ");
+		// Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
 		this->cube.faces[button_face].rm_pixel_color(button_row, button_col, 255, 255, 0);
+		this->cube.faces[button_face].show();
 	}
 	
 	// Remove the hero from previous tile
@@ -110,7 +113,6 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		int button_row = row;
 		int button_col = col;
 		this->cube.next_tile(button_face, button_row, button_col, i);
-		Serial.print(button_face);Serial.print(" ");Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
 
 		// Remove coridor color
 		this->cube.faces[button_face].add_pixel_color(button_row, button_col, 0, 0, 30);

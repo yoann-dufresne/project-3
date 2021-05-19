@@ -153,7 +153,6 @@ void Face::unbind_btn_callback(int row, int col) {
 Cube::Cube() {}
 
 void Cube::init() {
-	Serial.println("Cube init");
 	// Init faces
 	int addrs[6] = {0x2E, 0x2F, 0x30, 0x36, 0x32, 0x3E};
 	int rotations[6] = {2, 0, 3, 1, 3, 1};

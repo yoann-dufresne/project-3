@@ -23,9 +23,8 @@ void setup() {
   uint8_t extern_walls[2] = {0xFF, 0xFF};
   laby.init_walls(1, {3}, intern_walls, extern_walls);
 
-  // show first pixel
-  cube.faces[face].add_pixel_color(row, col, 0, 50, 0);
-  cube.faces[face].show();
+  // Init hero
+  laby.init_hero(4, 0, 0);
 }
 
 

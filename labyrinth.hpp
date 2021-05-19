@@ -16,9 +16,9 @@ private:
 	uint8_t * intern_walls;
 	uint8_t * extern_walls;
 
+public:
 	uint8_t hero[3];
 
-public:
 	Labyrinth(Cube & cube) {
 		this->cube = cube;
 	}

@@ -24,6 +24,10 @@ void rot(int & row, int & col, int rotation) {
 	col = c2;
 }
 
+void arot(int & row, int col, int rotation) {
+	rot(row, col, 3-rotation);
+}
+
 
 Face::Face() {
 	this->is_init = false;
@@ -71,12 +75,18 @@ void Face::get_pixel(int row, int col, int & r, int & g, int & b) {
 }
 
 void Face::add_pixel_color(int row, int col, int r, int g, int b) {
+	if (not is_init)
+		return;
+
 	int rp, gp, bp;
 	this->get_pixel(row, col, rp, gp, bp);
 	this->set_pixel(row, col, max(r, rp), max(g, gp), max(b, bp));
 }
 
 void Face::rm_pixel_color(int row, int col, int r, int g, int b) {
+	if (not is_init)
+		return;
+
 	int rp, gp, bp;
 	this->get_pixel(row, col, rp, gp, bp);
 	this->set_pixel(row, col, min(r, rp), min(g, gp), min(b, bp));
@@ -102,18 +112,38 @@ void Face::see_idx(int idx) {
 }
 
 void Face::activate_btn(int row, int col, uint8_t event) {
+	if (not is_init)
+		return;
+
+	rot(col, row, this->rotation);
+
 	this->trellis->activateKey(row * 4 + col, event);
 }
 
 void Face::deactivate_btn(int row, int col, uint8_t event) {
+	if (not is_init)
+		return;
+
+	rot(col, row, this->rotation);
+	
 	this->trellis->activateKey(row * 4 + col, event, false);
 }
 
 void Face::bind_btn_callback(int row, int col, TrellisCallback cb) {
+	if (not is_init)
+		return;
+
+	rot(col, row, this->rotation);
+	
 	this->trellis->registerCallback(row * 4 + col, cb);
 }
 
 void Face::unbind_btn_callback(int row, int col) {
+	if (not is_init)
+		return;
+
+	rot(col, row, this->rotation);
+	
 	this->trellis->unregisterCallback(row * 4 + col);
 }
 

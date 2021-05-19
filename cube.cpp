@@ -104,6 +104,7 @@ void Face::reset_leds() {
 	for (int r=0 ; r<4 ; r++)
 		for (int c=0 ; c<4 ; c++)
 			this->trellis->pixels.setPixelColor(r * 4 + c, 0);
+	this->trellis->pixels.show();
 }
 
 void Face::see_idx(int idx) {

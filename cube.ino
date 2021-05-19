@@ -21,7 +21,7 @@ void setup() {
   Labyrinth laby(cube);
   uint8_t intern_walls[3] = {0b10001001, 0b00010010, 0b10010100};
   uint8_t extern_walls[2] = {0xFF, 0xFF};
-  laby.init_walls(1, {3}, intern_walls, extern_walls);
+  laby.init_walls(1, {4}, intern_walls, extern_walls);
 
   // Init hero
   laby.init_hero(4, 0, 0);

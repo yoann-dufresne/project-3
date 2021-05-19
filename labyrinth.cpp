@@ -11,7 +11,47 @@ void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * intern_w
 }
 
 uint8_t Labyrinth::get_walls(uint8_t face, uint8_t row, uint8_t col) {
-	return 0;
+	uint8_t walls = 0;
+
+	// North
+	if (row == 0) {
+		walls |= (this->extern_walls[1] >> col) & 0b1;
+	} else {
+		int wall_idx = 12 + 3 * col + row - 1;
+		int byte_idx = wall_idx / 8;
+		walls |= (this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
+	}
+
+	// West
+	if (col == 0) {
+		walls |= ((this->extern_walls[0] >> (7 - row)) & 0b1) << 1;
+	} else {
+		int wall_idx = 3 * row + col - 1;
+		int byte_idx = wall_idx / 8;
+		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
+	}
+
+	// South
+	if (row == 3) {
+		walls |= ((this->extern_walls[0] >> (3 - col)) & 0b1) << 2;
+	} else {
+		int wall_idx = 12 + 3 * col + row;
+		int byte_idx = wall_idx / 8;
+		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
+	}
+
+	// East
+	if (col == 3) {
+		walls |= ((this->extern_walls[1] >> (4 + row)) & 0b1) << 3;
+	} else {
+		int wall_idx = 3 * row + col;
+		int byte_idx = wall_idx / 8;
+		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
+	}
+
+	// Serial.print(face);Serial.print(" ");Serial.print(row);Serial.print(" ");Serial.println(col);
+	// Serial.println(walls);
+	return walls;
 }
 
 
@@ -115,6 +155,8 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		this->cube.next_tile(button_face, button_row, button_col, i);
 
 		// Remove coridor color
+		// Serial.print("blue ");Serial.print(button_face);Serial.print(" ");
+		// Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
 		this->cube.faces[button_face].add_pixel_color(button_row, button_col, 0, 0, 30);
 		this->cube.faces[button_face].show();
 

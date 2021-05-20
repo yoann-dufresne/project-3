@@ -13,8 +13,8 @@ private:
 
 	uint8_t nb_faces;
 	uint8_t * faces;
-	uint8_t * intern_walls;
-	uint8_t * extern_walls;
+	uint8_t intern_walls[3];
+	uint8_t extern_walls[2];
 
 public:
 	uint8_t hero[3];

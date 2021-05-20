@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "labyrinth.hpp"
 
 
@@ -6,8 +8,10 @@
 void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * intern_walls, uint8_t * extern_walls) {
 	this->nb_faces = nb_faces;
 	this->faces = faces;
-	this->intern_walls = intern_walls;
-	this->extern_walls = extern_walls;
+	memcpy(this->intern_walls, intern_walls, 3);
+	// this->intern_walls = intern_walls;
+	memcpy(this->extern_walls, extern_walls, 3);
+	// this->extern_walls = extern_walls;
 }
 
 uint8_t Labyrinth::get_walls(uint8_t face, uint8_t row, uint8_t col) {
@@ -49,8 +53,6 @@ uint8_t Labyrinth::get_walls(uint8_t face, uint8_t row, uint8_t col) {
 		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
 	}
 
-	// Serial.print(face);Serial.print(" ");Serial.print(row);Serial.print(" ");Serial.println(col);
-	// Serial.println(walls);
 	return walls;
 }
 
@@ -94,6 +96,9 @@ void hero_mv_east(keyEvent evt) {
 	current_laby->hero_move(current_laby->hero, &direction);
 }
 
+void (*callbacks[4])(keyEvent) = {hero_mv_north, hero_mv_west, hero_mv_south, hero_mv_east};
+
+
 void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 	// Serial.println("Move");
 	int face = coordinates[0];
@@ -135,7 +140,7 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 	coordinates[2] = col;
 
 	// Show in new position
-	this->cube->faces[face].set_pixel(row, col, 50, 50, 50);
+	this->cube->faces[face].set_pixel(row, col, 50, 50, 10);
 
 	// Decide move buttons
 	walls = this->get_walls(face, row, col);
@@ -157,21 +162,22 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		this->cube->faces[button_face].add_pixel_color(button_row, button_col, 0, 0, 30);
 
 		// Set the button callback
-	    this->cube->faces[button_face].activate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
 	    current_laby = this;
-	    switch (i) {
-	    case 0:
-	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_north);
-	      break;
-	    case 1:
-	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_west);
-	      break;
-	    case 2:
-	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_south);
-	      break;
-	    case 3:
-	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_east);
-	    }
+	    this->cube->faces[button_face].activate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
+	    this->cube->faces[button_face].bind_btn_callback(button_row, button_col, callbacks[i]);
+	    // switch (i) {
+	    // case 0:
+	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_north);
+	    //   break;
+	    // case 1:
+	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_west);
+	    //   break;
+	    // case 2:
+	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_south);
+	    //   break;
+	    // case 3:
+	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_east);
+	    // }
 	}
 
 }

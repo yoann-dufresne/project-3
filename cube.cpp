@@ -46,6 +46,7 @@ void Face::init(int addr, int rotation) {
   } else {
     Serial.println("NeoPixel Trellis started");
     this->is_init = true;
+    this->reset_leds();
   }
 
 }
@@ -60,6 +61,7 @@ void Face::set_pixel(int row, int col, int r, int g, int b) {
 		row * 4 + col,
 		this->trellis->pixels.Color(r, g, b)
 	);
+	this->refresh_needed = true;
 }
 
 void Face::get_pixel(int row, int col, int & r, int & g, int & b) {
@@ -93,18 +95,20 @@ void Face::rm_pixel_color(int row, int col, int r, int g, int b) {
 }
 
 void Face::show() {
+	// Serial.print("FACE SHOW ");Serial.println(this->refresh_needed);
 	if (not is_init)
 		return;
 
-	this->trellis->pixels.show();
-	// this->changed = false;
+	if (this->refresh_needed) {
+		this->trellis->pixels.show();
+		this->refresh_needed = false;
+	}
 }
 
 void Face::reset_leds() {
 	for (int r=0 ; r<4 ; r++)
 		for (int c=0 ; c<4 ; c++)
-			this->trellis->pixels.setPixelColor(r * 4 + c, 0);
-	this->trellis->pixels.show();
+			this->set_pixel(r, c, 0, 0, 0);
 }
 
 void Face::see_idx(int idx) {
@@ -172,9 +176,7 @@ void Cube::read(bool pooling) {
 
 void Cube::show() {
 	for (int i=0 ; i<6 ; i++) {
-		delay(10);
 		this->faces[i].show();
-		delay(10);
 	}
 }
 

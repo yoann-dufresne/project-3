@@ -112,33 +112,30 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		int button_face = face;
 		int button_row = row;
 		int button_col = col;
-		this->cube.next_tile(button_face, button_row, button_col, i);
+		this->cube->next_tile(button_face, button_row, button_col, i);
 
 		// Unset the button callback
-		this->cube.faces[button_face].deactivate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
-		this->cube.faces[button_face].unbind_btn_callback(button_row, button_col);
+		this->cube->faces[button_face].deactivate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
+		this->cube->faces[button_face].unbind_btn_callback(button_row, button_col);
 
 		// Remove coridor color
 		// Serial.print("rm ");Serial.print(button_face);Serial.print(" ");
 		// Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
-		this->cube.faces[button_face].rm_pixel_color(button_row, button_col, 255, 255, 0);
-		this->cube.faces[button_face].show();
+		this->cube->faces[button_face].rm_pixel_color(button_row, button_col, 255, 255, 0);
 	}
 	
 	// Remove the hero from previous tile
-	this->cube.faces[face].set_pixel(row, col, 0, 0, 0);
-	this->cube.faces[face].show();
+	this->cube->faces[face].set_pixel(row, col, 0, 0, 0);
 	// TODO: update potential objects on this tile
 
 	// Move in memory to next tile
-	cube.next_tile(face, row, col, direction);
+	this->cube->next_tile(face, row, col, direction);
 	coordinates[0] = face;
 	coordinates[1] = row;
 	coordinates[2] = col;
 
 	// Show in new position
-	this->cube.faces[face].set_pixel(row, col, 50, 50, 50);
-	this->cube.faces[face].show();
+	this->cube->faces[face].set_pixel(row, col, 50, 50, 50);
 
 	// Decide move buttons
 	walls = this->get_walls(face, row, col);
@@ -152,30 +149,29 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		int button_face = face;
 		int button_row = row;
 		int button_col = col;
-		this->cube.next_tile(button_face, button_row, button_col, i);
+		this->cube->next_tile(button_face, button_row, button_col, i);
 
 		// Remove coridor color
 		// Serial.print("blue ");Serial.print(button_face);Serial.print(" ");
 		// Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
-		this->cube.faces[button_face].add_pixel_color(button_row, button_col, 0, 0, 30);
-		this->cube.faces[button_face].show();
+		this->cube->faces[button_face].add_pixel_color(button_row, button_col, 0, 0, 30);
 
 		// Set the button callback
-    this->cube.faces[button_face].activate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
-    current_laby = this;
-    switch (i) {
-    case 0:
-      this->cube.faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_north);
-      break;
-    case 1:
-      this->cube.faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_west);
-      break;
-    case 2:
-      this->cube.faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_south);
-      break;
-    case 3:
-      this->cube.faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_east);
-    }
+	    this->cube->faces[button_face].activate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
+	    current_laby = this;
+	    switch (i) {
+	    case 0:
+	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_north);
+	      break;
+	    case 1:
+	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_west);
+	      break;
+	    case 2:
+	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_south);
+	      break;
+	    case 3:
+	      this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_east);
+	    }
 	}
 
 }

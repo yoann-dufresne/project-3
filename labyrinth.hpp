@@ -9,7 +9,7 @@
 
 class Labyrinth {
 private:
-	Cube cube;
+	Cube * cube;
 
 	uint8_t nb_faces;
 	uint8_t * faces;
@@ -19,7 +19,7 @@ private:
 public:
 	uint8_t hero[3];
 
-	Labyrinth(Cube & cube) {
+	Labyrinth(Cube * cube) {
 		this->cube = cube;
 	}
 

@@ -16,7 +16,10 @@ private:
 	Adafruit_NeoTrellis * trellis;
 
   friend class Cube;
+
 public:
+  bool refresh_needed;
+  
 	Face();
   void init(int addr, int rotation);
   

@@ -6,9 +6,20 @@
 
 
 Cube cube;
-Labyrinth laby(&cube);
+Level * current_level = nullptr;
 
-int face=2, row=2, col=2;
+// -- For now, only one laby level
+//                      nb faces and faces list
+uint8_t bin_levels[10] = {1, 4,
+//    Internal walls                      external walls
+      0b10001001, 0b00010010, 0b10010100, 0xFF, 0xFF,
+//    Hero coordinates
+      4, 0, 0
+// TODO: objects
+};
+
+
+
 
 void setup() {
   // Begin serial
@@ -18,19 +29,16 @@ void setup() {
 
   // Init cube
   cube.init();
-
-  // Init laby
-  uint8_t intern_walls[3] = {0b10001001, 0b00010010, 0b10010100};
-  uint8_t extern_walls[2] = {0xFF, 0xFF};
-  laby.init_walls(1, {4}, intern_walls, extern_walls);
-
-  // Init hero
-  laby.init_hero(4, 0, 0);
 }
 
 
 void loop() {
   long time = millis();
+
+  // Level update
+  if (current_level == nullptr or current_level->is_over()) {
+    current_level = Labyrinth::lvl_from_memory(&cube, bin_levels);
+  }
 
   // Trigger all the waiting callbacks
   if(!digitalRead(INT_PIN)){

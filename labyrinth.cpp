@@ -3,15 +3,21 @@
 #include "labyrinth.hpp"
 
 
+void Labyrinth::init(uint8_t ** args) {
+
+}
+
 // ----- Walls -----
 
-void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * intern_walls, uint8_t * extern_walls) {
+void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * walls) {
 	this->nb_faces = nb_faces;
-	this->faces = faces;
-	memcpy(this->intern_walls, intern_walls, 3);
-	// this->intern_walls = intern_walls;
-	memcpy(this->extern_walls, extern_walls, 3);
-	// this->extern_walls = extern_walls;
+	memcpy(this->faces, faces, nb_faces);
+
+	for (uint8_t n=0 ; n<nb_faces ; n++) {
+		uint8_t face_idx = this->faces[n];
+		memcpy(this->intern_walls + 3 * face_idx, walls + 5 * n, 3);
+		memcpy(this->extern_walls + 2 * face_idx, walls + 5 * n + 3, 2);
+	}
 }
 
 uint8_t Labyrinth::get_walls(uint8_t face, uint8_t row, uint8_t col) {
@@ -19,38 +25,38 @@ uint8_t Labyrinth::get_walls(uint8_t face, uint8_t row, uint8_t col) {
 
 	// North
 	if (row == 0) {
-		walls |= (this->extern_walls[1] >> col) & 0b1;
+		walls |= (this->extern_walls[face * 2 + 1] >> col) & 0b1;
 	} else {
 		int wall_idx = 12 + 3 * col + row - 1;
 		int byte_idx = wall_idx / 8;
-		walls |= (this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
+		walls |= (this->intern_walls[face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
 	}
 
 	// West
 	if (col == 0) {
-		walls |= ((this->extern_walls[0] >> (7 - row)) & 0b1) << 1;
+		walls |= ((this->extern_walls[face * 2 + 0] >> (7 - row)) & 0b1) << 1;
 	} else {
 		int wall_idx = 3 * row + col - 1;
 		int byte_idx = wall_idx / 8;
-		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
+		walls |= ((this->intern_walls[face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
 	}
 
 	// South
 	if (row == 3) {
-		walls |= ((this->extern_walls[0] >> (3 - col)) & 0b1) << 2;
+		walls |= ((this->extern_walls[face * 2 + 0] >> (3 - col)) & 0b1) << 2;
 	} else {
 		int wall_idx = 12 + 3 * col + row;
 		int byte_idx = wall_idx / 8;
-		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
+		walls |= ((this->intern_walls[face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
 	}
 
 	// East
 	if (col == 3) {
-		walls |= ((this->extern_walls[1] >> (4 + row)) & 0b1) << 3;
+		walls |= ((this->extern_walls[face * 2 + 1] >> (4 + row)) & 0b1) << 3;
 	} else {
 		int wall_idx = 3 * row + col;
 		int byte_idx = wall_idx / 8;
-		walls |= ((this->intern_walls[byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
+		walls |= ((this->intern_walls[face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
 	}
 
 	return walls;
@@ -124,8 +130,6 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		this->cube->faces[button_face].unbind_btn_callback(button_row, button_col);
 
 		// Remove coridor color
-		// Serial.print("rm ");Serial.print(button_face);Serial.print(" ");
-		// Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
 		this->cube->faces[button_face].rm_pixel_color(button_row, button_col, 255, 255, 0);
 	}
 	
@@ -142,6 +146,10 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 	// Show in new position
 	this->cube->faces[face].set_pixel(row, col, 50, 50, 10);
 
+	// Activate object if present
+	if (this->objects[face][row][col] != nullptr)
+		this->objects[face][row][col]->activate(*this);
+
 	// Decide move buttons
 	walls = this->get_walls(face, row, col);
 	for (uint8_t i=0 ; i<4 ; i++) {
@@ -157,27 +165,20 @@ void Labyrinth::hero_move(uint8_t * coordinates, uint8_t * args) {
 		this->cube->next_tile(button_face, button_row, button_col, i);
 
 		// Remove coridor color
-		// Serial.print("blue ");Serial.print(button_face);Serial.print(" ");
-		// Serial.print(button_row);Serial.print(" ");Serial.println(button_col);
 		this->cube->faces[button_face].add_pixel_color(button_row, button_col, 0, 0, 30);
 
 		// Set the button callback
-	    current_laby = this;
-	    this->cube->faces[button_face].activate_btn(button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
-	    this->cube->faces[button_face].bind_btn_callback(button_row, button_col, callbacks[i]);
-	    // switch (i) {
-	    // case 0:
-	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_north);
-	    //   break;
-	    // case 1:
-	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_west);
-	    //   break;
-	    // case 2:
-	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_south);
-	    //   break;
-	    // case 3:
-	    //   this->cube->faces[button_face].bind_btn_callback(button_row, button_col, hero_mv_east);
-	    // }
+    current_laby = this;
+    this->cube->faces[button_face].activate_btn(
+    	button_row, button_col, SEESAW_KEYPAD_EDGE_RISING);
+    this->cube->faces[button_face].bind_btn_callback(button_row, button_col, callbacks[i]);
 	}
+}
 
+
+// ----- Other objects -----
+
+
+void Labyrinth::init_object(LabObject * lo) {
+	this->objects[lo->coordinates[0]][lo->coordinates[1]][lo->coordinates[2]] = lo;
 }

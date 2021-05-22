@@ -1,24 +1,14 @@
 
 #include "cube.hpp"
-#include "labyrinth.hpp"
+#include "gameengine.hpp"
 
 #define REFRESH_DELAY 100
 
 
 Cube cube;
+GameEngine ge(&cube);
+
 Level * current_level = nullptr;
-
-// -- For now, only one laby level
-//                      nb faces and faces list
-uint8_t bin_levels[10] = {1, 4,
-//    Internal walls                      external walls
-      0b10001001, 0b00010010, 0b10010100, 0xFF, 0xFF,
-//    Hero coordinates
-      4, 0, 0
-// TODO: objects
-};
-
-
 
 
 void setup() {
@@ -37,7 +27,21 @@ void loop() {
 
   // Level update
   if (current_level == nullptr or current_level->is_over()) {
-    current_level = Labyrinth::lvl_from_memory(&cube, bin_levels);
+    bool is_success = true;
+    if (current_level != nullptr)
+      // Remove the previous level
+      delete current_level;
+    else
+      is_success = current_level->is_success();
+    // Reset the cube leds
+    cube.reset_leds();
+
+    if (is_success)
+      // Load new level
+      current_level = ge.load_next_lvl();
+    else
+      // Reload level
+      current_level = ge.reload_lvl();
   }
 
   // Trigger all the waiting callbacks
@@ -45,8 +49,10 @@ void loop() {
     cube.read(false);
   }
 
+  // Refresh cube displays
   cube.show();
 
+  // Wait a small delay (max 10 fps to save power)
   time = millis() - time;
   delay(max(0, REFRESH_DELAY-time));
 }

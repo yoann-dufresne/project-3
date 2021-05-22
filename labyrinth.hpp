@@ -10,7 +10,46 @@
 #include "Arduino.h"
 
 
-class LabObject;
+class Labyrinth;
+
+class LabObject {
+public:
+	Coordinates coordinates;
+
+	LabObject(uint8_t face, uint8_t row, uint8_t col) {
+		this->coordinates.face = face;
+		this->coordinates.row = row;
+		this->coordinates.col = col;
+	};
+	LabObject(Coordinates & coordinates) {
+		this->coordinates.face = coordinates.face;
+		this->coordinates.row = coordinates.row;
+		this->coordinates.col = coordinates.col;
+	}
+	virtual void set_colors(Labyrinth & laby);
+	virtual void activate(Labyrinth & laby);
+};
+
+
+class WinPoint : public LabObject {
+public:
+	WinPoint(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
+	WinPoint(Coordinates & coordinates) : LabObject(coordinates) {};
+
+	void set_colors(Labyrinth & laby);
+	void activate(Labyrinth & laby);
+};
+
+class Enemy : public LabObject {
+public:
+	Enemy(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
+	Enemy(Coordinates & coordinates) : LabObject(coordinates) {};
+
+	void set_colors(Labyrinth & laby);
+	void activate(Labyrinth & laby);
+};
+
+
 
 class Labyrinth : public Level {
 private:
@@ -19,11 +58,12 @@ private:
 	uint8_t intern_walls[3*6];
 	uint8_t extern_walls[2*6];
 
+public:
 	LabObject * objects[6][4][4];
 
-public:
-	uint8_t hero[3];
+	Coordinates hero;
 	bool completed;
+	bool win;
 
 	Labyrinth(Cube * cube) : Level(cube) {
 		for (int f=0 ; f<6 ; f++)
@@ -32,10 +72,20 @@ public:
 					this->objects[f][r][c] = nullptr;
 
 		this->completed = false;
+		this->win = false;
+	}
+
+	~Labyrinth() {
+		for (int f=0 ; f<6 ; f++)
+			for (int r=0 ; r<4 ; r++)
+				for (int c=0 ; c<4 ; c++)
+					if (this->objects[f][r][c] != nullptr)
+						delete this->objects[f][r][c];
 	}
 
 	void init(uint8_t ** args);
 	bool is_over() {return this->completed;};
+	bool is_success() {return this->win;};
 
 	/** Declare the used faces and their walls.
 	  * 
@@ -50,10 +100,10 @@ public:
 	  * direction (counter clockwise).
 	  **/
 	void init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * walls);
-	uint8_t get_walls(uint8_t face, uint8_t row, uint8_t col);
+	uint8_t get_walls(Coordinates & coords);
 
-	void init_hero(uint8_t face, uint8_t row, uint8_t col);
-	void hero_move(uint8_t * coordinates, uint8_t * args);
+	void init_hero(Coordinates & coordinates);
+	void hero_move(Coordinates & coordinates, uint8_t * args);
 
 	void init_object(LabObject * lo);
 
@@ -65,9 +115,9 @@ public:
 	  * - 1 byte for num of object used in the labyrinth
 	  * - 4 bytes per object in the lab (1 for obj type + 3 for coordinates)
 	  **/
-	static Level * lvl_from_memory(Cube * cube, uint8_t * bin_data) {
+	static Level * lvl_from_memory(Cube * cube, uint8_t * bin_data, uint32_t & byte_used) {
 		Labyrinth * laby = new Labyrinth(cube);
-	 	int current_byte = 0;
+	 	byte_used = 0;
 
 	 	// Init faces and walls
 	 	uint8_t nb_faces = bin_data[0];
@@ -75,46 +125,44 @@ public:
 	 	uint8_t * walls = bin_data + 1 + nb_faces;
 
 		laby->init_walls(nb_faces, faces, walls);
-		current_byte = 1 + nb_faces + 5 * nb_faces;
+		byte_used = 1 + nb_faces + 5 * nb_faces;
 
 		// Init hero
-		laby->init_hero(
-			bin_data[current_byte],
-			bin_data[current_byte + 1],
-			bin_data[current_byte + 2]
-		);
-		current_byte += 3;
+		Coordinates coords(bin_data + byte_used);
+		laby->init_hero(coords);
+		byte_used += 3;
+
+		// Lab objects
+		uint8_t nb_objects = bin_data[byte_used];
+		byte_used += 1;
+
+		for (int i=0 ; i<nb_objects ; i++) {
+			uint8_t obj_type = bin_data[byte_used++];
+
+			LabObject * lo;
+
+			Coordinates obj_coords;
+			switch(obj_type) {
+			case 'w':
+				obj_coords = Coordinates(bin_data+byte_used);
+				lo = new WinPoint(obj_coords);
+				byte_used += 3;
+				break;
+
+			case 'l':
+				obj_coords = Coordinates(bin_data+byte_used);
+				lo = new Enemy(obj_coords);
+				byte_used += 3;
+				break;
+			}
+
+			laby->init_object(lo);
+		}
 
 		return laby;
 	}
 };
 
-
-class LabObject {
-public:
-	uint8_t coordinates[3];
-
-	LabObject(uint8_t face, uint8_t row, uint8_t col) {
-		this->coordinates[0] = face;
-		this->coordinates[1] = row;
-		this->coordinates[2] = col;
-	};
-	LabObject(uint8_t * coordinates) {
-		memcpy(this->coordinates, coordinates, 3);
-	}
-	virtual void set_colors(Labyrinth & laby);
-	virtual void activate(Labyrinth & laby);
-};
-
-
-class WinPoint : public LabObject {
-public:
-	WinPoint(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
-	WinPoint(uint8_t * coordinates) : LabObject(coordinates) {};
-
-	void set_colors(Labyrinth & laby);
-	void activate(Labyrinth & laby);
-};
 
 
 

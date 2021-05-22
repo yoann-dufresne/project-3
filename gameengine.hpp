@@ -3,32 +3,33 @@
 
 #include "cube.hpp"
 
-#include "labyrinth.hpp"
-
 
 class Level {
-protected:
+public:
 	Cube * cube;
 
-public:
 	Level(Cube * cube) {
 		this->cube = cube;
 	}
 
 	virtual void init(uint8_t ** args);
 	virtual bool is_over();
+	virtual bool is_success();
 };
 
 
 class GameEngine {
 private:
 	Cube * cube;
-	Level * levels;
-
+	uint32_t nb_lvl;
+	uint32_t program_pointer;
+	uint32_t current_lvl_start;
+	
 public:
-	GameEngine(Cube * cube) {
-		this->cube = cube;
-	}
+	GameEngine(Cube * cube);
+
+	Level * reload_lvl();
+	Level * load_next_lvl();
 
 };
 

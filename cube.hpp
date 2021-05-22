@@ -53,6 +53,38 @@ public:
 
   void show();
   void reset_leds();
+};
+
+
+class Coordinates {
+public:
+  uint8_t face;
+  uint8_t row;
+  uint8_t col;
+
+  Coordinates() {
+    this->face = 6;
+    this->row = 4;
+    this->col = 4;
+  }
+
+  Coordinates(uint8_t face, uint8_t row, uint8_t col) {
+    this->face = face;
+    this->row = row;
+    this->col = col;
+  }
+
+  Coordinates(uint8_t * coords) {
+    this->face = coords[0];
+    this->row = coords[1];
+    this->col = coords[2];
+  }
+
+  Coordinates(Coordinates & c) {
+    this->face = c.face;
+    this->row = c.row;
+    this->col = c.col;
+  }
 
   /** Given the coordinates and direction, return the next coordinates.
   * The values are stored in the input variables.
@@ -60,9 +92,57 @@ public:
   * @param face face index [min: 0 ; max: 5] (1st coordinate)
   * @param row row index [min: 0 ; max: 3] (2nd coordinate)
   * @param col column index [min: 0 ; max: 3] (3rd coordinate)
-  * @param direction direction index [min: 0 ; max: 3]. 0 mean north, 1 west, 2 south and 3 east.
+  * @param direction direction index [min: 0 ; max: 3]. 0 means north, 1 west, 2 south and 3 east.
   */
-	void Cube::next_tile(int & face, int & row, int & col, int direction);
+  static void next_coord(Coordinates & coord, int direction) {
+    switch (direction) {
+    case 0:
+      coord.row -= 1;
+
+      // Overflow
+      if (coord.row == -1) {
+        coord.face = 3 * (coord.face / 3) + ((coord.face + 1) % 3);
+        coord.row = coord.col;
+        coord.col = 0;
+      }
+      break;
+
+    case 1:
+      coord.col -= 1;
+      
+      // Overflow
+      if (coord.col == -1) {
+        coord.face = 3 * (coord.face / 3) + ((coord.face + 2) % 3);
+        coord.col = coord.row;
+        coord.row = 0;
+      }
+      break;
+
+    case 2:
+      coord.row += 1;
+
+      // Overflow
+      if (coord.row == 4) {
+        //     Face triplet change      +   opposite face
+        coord.face = ((coord.face / 3 + 1) % 2) * 3 + 2 - (coord.face + 1) % 3;
+        coord.col = 3 - coord.col;
+        coord.row = 3;
+      }
+      break;
+
+    case 3:
+      coord.col += 1;
+
+      // Overflow
+      if (coord.col == 4) {
+        //     Face triplet change      +   opposite face
+        coord.face = ((coord.face / 3 + 1) % 2) * 3 + 2 - (coord.face + 2) % 3;
+        coord.col = 3;
+        coord.row = 3 - coord.row;
+      }
+      break;
+    }
+  }
 };
 
   

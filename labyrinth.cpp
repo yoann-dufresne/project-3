@@ -3,9 +3,15 @@
 #include "labyrinth.hpp"
 
 
-void Labyrinth::init(uint8_t ** args) {
-
+Labyrinth::~Labyrinth() {
+	for (int f=0 ; f<6 ; f++)
+		for (int r=0 ; r<4 ; r++)
+			for (int c=0 ; c<4 ; c++)
+				if (this->objects[f][r][c] != nullptr) {
+					delete this->objects[f][r][c];
+				}
 }
+
 
 // ----- Walls -----
 

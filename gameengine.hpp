@@ -11,8 +11,8 @@ public:
 	Level(Cube * cube) {
 		this->cube = cube;
 	}
+	virtual ~Level() {};
 
-	virtual void init(uint8_t ** args);
 	virtual bool is_over();
 	virtual bool is_success();
 };

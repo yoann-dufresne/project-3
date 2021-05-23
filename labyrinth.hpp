@@ -75,15 +75,8 @@ public:
 		this->win = false;
 	}
 
-	~Labyrinth() {
-		for (int f=0 ; f<6 ; f++)
-			for (int r=0 ; r<4 ; r++)
-				for (int c=0 ; c<4 ; c++)
-					if (this->objects[f][r][c] != nullptr)
-						delete this->objects[f][r][c];
-	}
+	~Labyrinth();
 
-	void init(uint8_t ** args);
 	bool is_over() {return this->completed;};
 	bool is_success() {return this->win;};
 
@@ -116,6 +109,7 @@ public:
 	  * - 4 bytes per object in the lab (1 for obj type + 3 for coordinates)
 	  **/
 	static Level * lvl_from_memory(Cube * cube, uint8_t * bin_data, uint32_t & byte_used) {
+		Serial.println(sizeof(Labyrinth));
 		Labyrinth * laby = new Labyrinth(cube);
 	 	byte_used = 0;
 
@@ -131,6 +125,7 @@ public:
 		Coordinates coords(bin_data + byte_used);
 		laby->init_hero(coords);
 		byte_used += 3;
+		// Serial.println(0);
 
 		// Lab objects
 		uint8_t nb_objects = bin_data[byte_used];
@@ -142,6 +137,7 @@ public:
 			LabObject * lo;
 
 			Coordinates obj_coords;
+			// Serial.print("before");Serial.println(freeMemory());
 			switch(obj_type) {
 			case 'w':
 				obj_coords = Coordinates(bin_data+byte_used);

@@ -1,6 +1,7 @@
 
 #include "cube.hpp"
 #include "gameengine.hpp"
+// #include "freemem.h"
 
 #define REFRESH_DELAY 100
 
@@ -28,20 +29,21 @@ void loop() {
   // Level update
   if (current_level == nullptr or current_level->is_over()) {
     bool is_success = true;
-    if (current_level != nullptr)
+    if (current_level != nullptr) {
       // Remove the previous level
-      delete current_level;
-    else
       is_success = current_level->is_success();
+      delete current_level;
+    }
     // Reset the cube leds
     cube.reset_leds();
 
-    if (is_success)
+    if (is_success) {
       // Load new level
       current_level = ge.load_next_lvl();
-    else
+    } else {
       // Reload level
       current_level = ge.reload_lvl();
+    }
   }
 
   // Trigger all the waiting callbacks

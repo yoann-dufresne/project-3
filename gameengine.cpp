@@ -3,7 +3,6 @@
 
 
 
-
 uint8_t bin_levels[] = {
 //		Nb levels
 			2,
@@ -17,7 +16,7 @@ uint8_t bin_levels[] = {
 // Objects
       2,
       'w', 4, 3, 3,
-      'l', 4, 2, 2,
+      'l', 4, 3, 2,
 
 //    Laby, nb faces and faces list
 			'L',  1, 4,
@@ -45,6 +44,7 @@ GameEngine::GameEngine(Cube * cube) {
 
 Level * GameEngine::reload_lvl() {
 	this->program_pointer = this->current_lvl_start;
+	this->nb_lvl += 1;
 	return this->load_next_lvl();
 }
 
@@ -55,13 +55,16 @@ Level * GameEngine::load_next_lvl() {
 		this->nb_lvl = bin_levels[0];
 		this->program_pointer = 1;
 	}
+	// Serial.println("Update");
 	// Update level start
 	this->current_lvl_start = this->program_pointer;
 
+	// Serial.println("Lvl type");
 	// Get the correct level type
 	uint8_t lvl_type = bin_levels[this->program_pointer];
 	this->program_pointer += 1;
 
+	// Serial.println("Switch");
 	uint32_t consumed_bytes = 0;
 	Level * lvl;
 	switch (lvl_type) {
@@ -69,7 +72,7 @@ Level * GameEngine::load_next_lvl() {
 		lvl = Labyrinth::lvl_from_memory(
 				this->cube,
 				bin_levels + this->program_pointer,
-				consumed_bytes); 
+				consumed_bytes);
 		break;
 	}
 

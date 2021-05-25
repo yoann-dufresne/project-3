@@ -1,7 +1,7 @@
 
 #include "cube.hpp"
 #include "gameengine.hpp"
-// #include "freemem.h"
+#include "freemem.h"
 
 #define REFRESH_DELAY 100
 
@@ -37,6 +37,7 @@ void loop() {
     // Reset the cube leds
     cube.reset_leds();
 
+    Serial.print("Base mem ");Serial.println(freeMemory());
     if (is_success) {
       // Load new level
       current_level = ge.load_next_lvl();
@@ -44,6 +45,7 @@ void loop() {
       // Reload level
       current_level = ge.reload_lvl();
     }
+    Serial.print("Lvl loaded mem ");Serial.println(freeMemory());
   }
 
   // Trigger all the waiting callbacks

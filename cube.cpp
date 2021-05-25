@@ -35,8 +35,8 @@ Face::Face() {
 
 
 void Face::init(int addr, int rotation) {
-	Serial.print("Face init ");
-	Serial.println(addr);
+	// Serial.print("Face init ");
+	// Serial.println(addr);
 
 	this->rotation = rotation;
 
@@ -44,7 +44,7 @@ void Face::init(int addr, int rotation) {
   if (!this->trellis->begin(addr)) {
     this->is_init = false;
   } else {
-    Serial.println("NeoPixel Trellis started");
+    // Serial.println("NeoPixel Trellis started");
     this->is_init = true;
     this->reset_leds();
   }

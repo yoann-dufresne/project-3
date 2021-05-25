@@ -6,6 +6,7 @@
 
 #include "cube.hpp"
 #include "gameengine.hpp"
+#include "progreader.hpp"
 
 #include "Arduino.h"
 
@@ -108,47 +109,57 @@ public:
 	  * - 1 byte for num of object used in the labyrinth
 	  * - 4 bytes per object in the lab (1 for obj type + 3 for coordinates)
 	  **/
-	static Level * lvl_from_memory(Cube * cube, uint8_t * bin_data, uint32_t & byte_used) {
-		Serial.println(sizeof(Labyrinth));
+	static Level * lvl_from_memory(Cube * cube, uint32_t & pp) {
+		Serial.print("Laby size ");Serial.println(sizeof(Labyrinth));
+		Serial.print("Enemy size ");Serial.println(sizeof(Enemy));
+
 		Labyrinth * laby = new Labyrinth(cube);
-	 	byte_used = 0;
 
 	 	// Init faces and walls
-	 	uint8_t nb_faces = bin_data[0];
-	 	uint8_t * faces = bin_data + 1;
-	 	uint8_t * walls = bin_data + 1 + nb_faces;
+	 	uint8_t nb_faces = prog(pp);
+	 	pp += 1;
+	 	uint8_t faces[6];
+	 	uint8_t walls[30];
+	 	for (int f=0 ; f<nb_faces ; f++) {
+	 		// Load faces names from memory
+			faces[f] = prog(pp + f);
+			// Load from memory the 5 walls bytes
+			for (int w=0 ; w<5 ; w++) {
+				walls[w] = prog(pp + nb_faces + f * 5 + w);
+			}
+		}
 
 		laby->init_walls(nb_faces, faces, walls);
-		byte_used = 1 + nb_faces + 5 * nb_faces;
+		pp += 6 * nb_faces;
 
 		// Init hero
-		Coordinates coords(bin_data + byte_used);
+		uint8_t * coords_uint = faces;
+		for (int c=0 ; c<3 ; c++)
+			coords_uint[c] = prog(pp++);
+		Coordinates coords(coords_uint);
 		laby->init_hero(coords);
-		byte_used += 3;
-		// Serial.println(0);
 
 		// Lab objects
-		uint8_t nb_objects = bin_data[byte_used];
-		byte_used += 1;
+		uint8_t nb_objects = prog(pp++);
 
 		for (int i=0 ; i<nb_objects ; i++) {
-			uint8_t obj_type = bin_data[byte_used++];
-
-			LabObject * lo;
+			uint8_t obj_type = prog(pp++);
 
 			Coordinates obj_coords;
-			// Serial.print("before");Serial.println(freeMemory());
+			LabObject * lo;
 			switch(obj_type) {
 			case 'w':
-				obj_coords = Coordinates(bin_data+byte_used);
+				for (int c=0 ; c<3 ; c++)
+					coords_uint[c] = prog(pp++);
+				obj_coords = Coordinates(coords_uint);
 				lo = new WinPoint(obj_coords);
-				byte_used += 3;
 				break;
 
 			case 'l':
-				obj_coords = Coordinates(bin_data+byte_used);
+				for (int c=0 ; c<3 ; c++)
+					coords_uint[c] = prog(pp++);
+				obj_coords = Coordinates(coords_uint);
 				lo = new Enemy(obj_coords);
-				byte_used += 3;
 				break;
 			}
 

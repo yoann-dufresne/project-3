@@ -18,14 +18,10 @@ public:
 	Coordinates coordinates;
 
 	LabObject(uint8_t face, uint8_t row, uint8_t col) {
-		this->coordinates.face = face;
-		this->coordinates.row = row;
-		this->coordinates.col = col;
+		this->coordinates = Coordinates(face, row, col);
 	};
 	LabObject(Coordinates & coordinates) {
-		this->coordinates.face = coordinates.face;
-		this->coordinates.row = coordinates.row;
-		this->coordinates.col = coordinates.col;
+		this->coordinates = Coordinates(coordinates);
 	}
 	virtual void set_colors(Labyrinth & laby);
 	virtual void activate(Labyrinth & laby);
@@ -116,7 +112,7 @@ public:
 	  **/
 	static Level * lvl_from_memory(Cube * cube, uint32_t & pp) {
 		// Serial.print("Laby size ");Serial.println(sizeof(Labyrinth));
-		Serial.print("Enemy size ");Serial.println(sizeof(Enemy));
+		// Serial.print("Enemy size ");Serial.println(sizeof(Enemy));
 
 		Labyrinth * laby = new Labyrinth(cube);
 

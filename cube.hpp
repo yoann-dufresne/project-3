@@ -58,33 +58,27 @@ public:
 
 class Coordinates {
 public:
-  uint8_t face;
-  uint8_t row;
-  uint8_t col;
+  uint8_t compact_coords;
 
   Coordinates() {
-    this->face = 6;
-    this->row = 4;
-    this->col = 4;
+    this->compact_coords = 0xFF;
   }
 
   Coordinates(uint8_t face, uint8_t row, uint8_t col) {
-    this->face = face;
-    this->row = row;
-    this->col = col;
+    this->compact_coords = ((face & 0b111) << 4) | ((row & 0b11) << 2) | (col & 0b11);
   }
 
   Coordinates(uint8_t * coords) {
-    this->face = coords[0];
-    this->row = coords[1];
-    this->col = coords[2];
+    this->compact_coords = ((coords[0] & 0b111) << 4) | ((coords[1] & 0b11) << 2) | (coords[2] & 0b11);
   }
 
   Coordinates(Coordinates & c) {
-    this->face = c.face;
-    this->row = c.row;
-    this->col = c.col;
+    this->compact_coords = c.compact_coords;
   }
+
+  uint8_t face() { return this->compact_coords >> 4; }
+  uint8_t row() { return (this->compact_coords >> 2) & 0b11; }
+  uint8_t col() { return this->compact_coords & 0b11; }
 
   /** Given the coordinates and direction, return the next coordinates.
   * The values are stored in the input variables.
@@ -95,53 +89,59 @@ public:
   * @param direction direction index [min: 0 ; max: 3]. 0 means north, 1 west, 2 south and 3 east.
   */
   static void next_coord(Coordinates & coord, int direction) {
+    int8_t face = coord.face();
+    int8_t row = coord.row();
+    int8_t col = coord.col();
+
     switch (direction) {
     case 0:
-      coord.row -= 1;
+      row -= 1;
 
       // Overflow
-      if (coord.row == -1) {
-        coord.face = 3 * (coord.face / 3) + ((coord.face + 1) % 3);
-        coord.row = coord.col;
-        coord.col = 0;
+      if (row == -1) {
+        face = 3 * (face / 3) + ((face + 1) % 3);
+        row = col;
+        col = 0;
       }
       break;
 
     case 1:
-      coord.col -= 1;
+      col -= 1;
       
       // Overflow
-      if (coord.col == -1) {
-        coord.face = 3 * (coord.face / 3) + ((coord.face + 2) % 3);
-        coord.col = coord.row;
-        coord.row = 0;
+      if (col == -1) {
+        face = 3 * (face / 3) + ((face + 2) % 3);
+        col = row;
+        row = 0;
       }
       break;
 
     case 2:
-      coord.row += 1;
+      row += 1;
 
       // Overflow
-      if (coord.row == 4) {
+      if (row == 4) {
         //     Face triplet change      +   opposite face
-        coord.face = ((coord.face / 3 + 1) % 2) * 3 + 2 - (coord.face + 1) % 3;
-        coord.col = 3 - coord.col;
-        coord.row = 3;
+        face = ((face / 3 + 1) % 2) * 3 + 2 - (face + 1) % 3;
+        col = 3 - col;
+        row = 3;
       }
       break;
 
     case 3:
-      coord.col += 1;
+      col += 1;
 
       // Overflow
-      if (coord.col == 4) {
+      if (col == 4) {
         //     Face triplet change      +   opposite face
-        coord.face = ((coord.face / 3 + 1) % 2) * 3 + 2 - (coord.face + 2) % 3;
-        coord.col = 3;
-        coord.row = 3 - coord.row;
+        face = ((face / 3 + 1) % 2) * 3 + 2 - (face + 2) % 3;
+        col = 3;
+        row = 3 - row;
       }
       break;
     }
+
+    coord.compact_coords = ((face & 0b111) << 4) | ((row & 0b11) << 2) | (col & 0b11);
   }
 };
 

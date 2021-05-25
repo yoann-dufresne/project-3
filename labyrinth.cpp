@@ -27,39 +27,39 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 	uint8_t walls = 0;
 
   // North
-  if (coords.row == 0) {
-    walls |= (this->extern_walls[coords.face * 2 + 1] >> coords.col) & 0b1;
+  if (coords.row() == 0) {
+    walls |= (this->extern_walls[coords.face() * 2 + 1] >> coords.col()) & 0b1;
   } else {
-    int wall_idx = 12 + 3 * coords.col + coords.row - 1;
+    int wall_idx = 12 + 3 * coords.col() + coords.row() - 1;
     int byte_idx = wall_idx / 8;
-    walls |= (this->intern_walls[coords.face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
+    walls |= (this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
   }
 
   // West
-  if (coords.col == 0) {
-    walls |= ((this->extern_walls[coords.face * 2 + 0] >> (7 - coords.row)) & 0b1) << 1;
+  if (coords.col() == 0) {
+    walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (7 - coords.row())) & 0b1) << 1;
   } else {
-    int wall_idx = 3 * coords.row + coords.col - 1;
+    int wall_idx = 3 * coords.row() + coords.col() - 1;
     int byte_idx = wall_idx / 8;
-    walls |= ((this->intern_walls[coords.face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
+    walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
   }
 
   // South
-  if (coords.row == 3) {
-    walls |= ((this->extern_walls[coords.face * 2 + 0] >> (3 - coords.col)) & 0b1) << 2;
+  if (coords.row() == 3) {
+    walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (3 - coords.col())) & 0b1) << 2;
   } else {
-    int wall_idx = 12 + 3 * coords.col + coords.row;
+    int wall_idx = 12 + 3 * coords.col() + coords.row();
     int byte_idx = wall_idx / 8;
-    walls |= ((this->intern_walls[coords.face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
+    walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
   }
 
   // East
-  if (coords.col == 3) {
-    walls |= ((this->extern_walls[coords.face * 2 + 1] >> (4 + coords.row)) & 0b1) << 3;
+  if (coords.col() == 3) {
+    walls |= ((this->extern_walls[coords.face() * 2 + 1] >> (4 + coords.row())) & 0b1) << 3;
   } else {
-    int wall_idx = 3 * coords.row + coords.col;
+    int wall_idx = 3 * coords.row() + coords.col();
     int byte_idx = wall_idx / 8;
-    walls |= ((this->intern_walls[coords.face * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
+    walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
   }
 
   return walls;
@@ -71,12 +71,12 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 void Labyrinth::init_hero(Coordinates & coords) {
 	this->hero = Coordinates(coords);
 
-	if (this->hero.row == 0) {
-		this->hero.row = 1;
+	if (this->hero.row() == 0) {
+		this->hero = Coordinates(coords.face(), 1, coords.col());
 		uint8_t direction = 0;
 		this->hero_move(this->hero, &direction);
 	} else {
-		this->hero.row -= 1;
+		this->hero = Coordinates(coords.face(), coords.row() - 1, coords.col());;
 		uint8_t direction = 2;
 		this->hero_move(this->hero, &direction);
 	}
@@ -122,33 +122,33 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 		Coordinates::next_coord(button_coords, i);
 
 		// Unset the button callback
-		this->cube->faces[button_coords.face].unbind_btn_callback(button_coords.row, button_coords.col);
-		this->cube->faces[button_coords.face].deactivate_btn(
-				button_coords.row,
-				button_coords.col,
+		this->cube->faces[button_coords.face()].unbind_btn_callback(button_coords.row(), button_coords.col());
+		this->cube->faces[button_coords.face()].deactivate_btn(
+				button_coords.row(),
+				button_coords.col(),
 				SEESAW_KEYPAD_EDGE_RISING
 		);
 
 		// Remove coridor color
-		this->cube->faces[button_coords.face].rm_pixel_color(
-			button_coords.row, button_coords.col,
+		this->cube->faces[button_coords.face()].rm_pixel_color(
+			button_coords.row(), button_coords.col(),
 			255, 255, 0);
 	}
 	
 	// Remove the hero from previous tile
-	this->cube->faces[coords.face].set_pixel(coords.row, coords.col, 0, 0, 0);
-	if (this->obj_refs[coords.face][coords.row][coords.col] != 255)
-		this->obj_list[this->obj_refs[coords.face][coords.row][coords.col]]->set_colors(*this);
+	this->cube->faces[coords.face()].set_pixel(coords.row(), coords.col(), 0, 0, 0);
+	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255)
+		this->obj_list[this->obj_refs[coords.face()][coords.row()][coords.col()]]->set_colors(*this);
 
 	// Move in memory to next tile
 	Coordinates::next_coord(coords, direction);
 
 	// Show in new position
-	this->cube->faces[coords.face].set_pixel(coords.row, coords.col, 50, 50, 50);
+	this->cube->faces[coords.face()].set_pixel(coords.row(), coords.col(), 50, 50, 50);
 
 	// Activate object if present
-	if (this->obj_refs[coords.face][coords.row][coords.col] != 255)
-		this->obj_list[this->obj_refs[coords.face][coords.row][coords.col]]->activate(*this);
+	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255)
+		this->obj_list[this->obj_refs[coords.face()][coords.row()][coords.col()]]->activate(*this);
 
 	if (this->completed)
 		return;
@@ -166,14 +166,14 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 		Coordinates::next_coord(button_coords, i);
 
 		// Remove coridor color
-		this->cube->faces[button_coords.face].add_pixel_color(button_coords.row, button_coords.col, 0, 0, 30);
+		this->cube->faces[button_coords.face()].add_pixel_color(button_coords.row(), button_coords.col(), 0, 0, 30);
 
 		// Set the button callback
     current_laby = this;
-    this->cube->faces[button_coords.face].activate_btn(
-    	button_coords.row, button_coords.col, SEESAW_KEYPAD_EDGE_RISING);
-    this->cube->faces[button_coords.face].bind_btn_callback(
-    	button_coords.row, button_coords.col, callbacks[i]);
+    this->cube->faces[button_coords.face()].activate_btn(
+    	button_coords.row(), button_coords.col(), SEESAW_KEYPAD_EDGE_RISING);
+    this->cube->faces[button_coords.face()].bind_btn_callback(
+    	button_coords.row(), button_coords.col(), callbacks[i]);
 	}
 }
 
@@ -187,15 +187,15 @@ void Labyrinth::set_nb_objects(uint8_t nb_objects) {
 
 void Labyrinth::init_object(LabObject * lo) {
 	this->obj_list[this->next_free] = lo;
-	this->obj_refs[lo->coordinates.face][lo->coordinates.row][lo->coordinates.col] = this->next_free++;
+	this->obj_refs[lo->coordinates.face()][lo->coordinates.row()][lo->coordinates.col()] = this->next_free++;
 	lo->set_colors(*this);
 }
 
 
 void WinPoint::set_colors(Labyrinth & laby) {
 	// Serial.println("Set colors");
-	laby.cube->faces[this->coordinates.face].add_pixel_color(
-		this->coordinates.row, this->coordinates.col,
+	laby.cube->faces[this->coordinates.face()].add_pixel_color(
+		this->coordinates.row(), this->coordinates.col(),
 		0, 40, 0
 	);
 }
@@ -212,8 +212,8 @@ void WinPoint::activate(Labyrinth & laby) {
 
 void Enemy::set_colors(Labyrinth & laby) {
 	// Serial.println("Set colors");
-	laby.cube->faces[this->coordinates.face].add_pixel_color(
-		this->coordinates.row, this->coordinates.col,
+	laby.cube->faces[this->coordinates.face()].add_pixel_color(
+		this->coordinates.row(), this->coordinates.col(),
 		40, 0, 0
 	);
 }

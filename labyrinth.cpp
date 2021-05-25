@@ -4,12 +4,9 @@
 
 
 Labyrinth::~Labyrinth() {
-	for (int f=0 ; f<6 ; f++)
-		for (int r=0 ; r<4 ; r++)
-			for (int c=0 ; c<4 ; c++)
-				if (this->objects[f][r][c] != nullptr) {
-					delete this->objects[f][r][c];
-				}
+	for (int i=0 ; i<this->next_free ; i++)
+		delete this->obj_list[i];
+	delete[] this->obj_list;
 }
 
 
@@ -140,8 +137,8 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 	
 	// Remove the hero from previous tile
 	this->cube->faces[coords.face].set_pixel(coords.row, coords.col, 0, 0, 0);
-	if (this->objects[coords.face][coords.row][coords.col] != nullptr)
-		this->objects[coords.face][coords.row][coords.col]->set_colors(*this);
+	if (this->obj_refs[coords.face][coords.row][coords.col] != 255)
+		this->obj_list[this->obj_refs[coords.face][coords.row][coords.col]]->set_colors(*this);
 
 	// Move in memory to next tile
 	Coordinates::next_coord(coords, direction);
@@ -150,8 +147,8 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 	this->cube->faces[coords.face].set_pixel(coords.row, coords.col, 50, 50, 50);
 
 	// Activate object if present
-	if (this->objects[coords.face][coords.row][coords.col] != nullptr)
-		this->objects[coords.face][coords.row][coords.col]->activate(*this);
+	if (this->obj_refs[coords.face][coords.row][coords.col] != 255)
+		this->obj_list[this->obj_refs[coords.face][coords.row][coords.col]]->activate(*this);
 
 	if (this->completed)
 		return;
@@ -183,9 +180,14 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 
 // ----- Other objects -----
 
+void Labyrinth::set_nb_objects(uint8_t nb_objects) {
+	this->next_free = 0;
+	this->obj_list = new LabObject *[nb_objects];
+}
 
 void Labyrinth::init_object(LabObject * lo) {
-	this->objects[lo->coordinates.face][lo->coordinates.row][lo->coordinates.col] = lo;
+	this->obj_list[this->next_free] = lo;
+	this->obj_refs[lo->coordinates.face][lo->coordinates.row][lo->coordinates.col] = this->next_free++;
 	lo->set_colors(*this);
 }
 

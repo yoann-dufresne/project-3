@@ -1,3 +1,4 @@
+// #include "LowPower.h"
 
 #include "cube.hpp"
 #include "gameengine.hpp"
@@ -59,4 +60,5 @@ void loop() {
   // Wait a small delay (max 10 fps to save power)
   time = millis() - time;
   delay(max(0, REFRESH_DELAY-time));
+  // LowPower.idle((int)max(0, REFRESH_DELAY-time));
 }

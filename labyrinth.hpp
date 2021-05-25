@@ -60,7 +60,9 @@ private:
 	uint8_t extern_walls[2*6];
 
 public:
-	LabObject * objects[6][4][4];
+	LabObject ** obj_list;
+	uint8_t next_free;
+	uint8_t obj_refs[6][4][4];
 
 	Coordinates hero;
 	bool completed;
@@ -70,10 +72,12 @@ public:
 		for (int f=0 ; f<6 ; f++)
 			for (int r=0 ; r<4 ; r++)
 				for (int c=0 ; c<4 ; c++)
-					this->objects[f][r][c] = nullptr;
+					this->obj_refs[f][r][c] = 255;
 
 		this->completed = false;
 		this->win = false;
+
+		this->next_free = 0;
 	}
 
 	~Labyrinth();
@@ -99,6 +103,7 @@ public:
 	void init_hero(Coordinates & coordinates);
 	void hero_move(Coordinates & coordinates, uint8_t * args);
 
+	void set_nb_objects(uint8_t nb_objects);
 	void init_object(LabObject * lo);
 
 	/** Labyrinth binary representation is as follow:
@@ -110,7 +115,7 @@ public:
 	  * - 4 bytes per object in the lab (1 for obj type + 3 for coordinates)
 	  **/
 	static Level * lvl_from_memory(Cube * cube, uint32_t & pp) {
-		Serial.print("Laby size ");Serial.println(sizeof(Labyrinth));
+		// Serial.print("Laby size ");Serial.println(sizeof(Labyrinth));
 		Serial.print("Enemy size ");Serial.println(sizeof(Enemy));
 
 		Labyrinth * laby = new Labyrinth(cube);
@@ -141,6 +146,7 @@ public:
 
 		// Lab objects
 		uint8_t nb_objects = prog(pp++);
+		laby->set_nb_objects(nb_objects);
 
 		for (int i=0 ; i<nb_objects ; i++) {
 			uint8_t obj_type = prog(pp++);

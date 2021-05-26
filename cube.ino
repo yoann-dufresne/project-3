@@ -2,13 +2,13 @@
 
 #include "cube.hpp"
 #include "gameengine.hpp"
+#include "animator.hpp"
 #include "freemem.h"
-
-#define REFRESH_DELAY 100
 
 
 Cube cube;
-GameEngine ge(&cube);
+Animator anim(&cube);
+GameEngine ge(&cube, &anim);
 
 Level * current_level = nullptr;
 
@@ -55,6 +55,7 @@ void loop() {
   }
 
   // Refresh cube displays
+  anim.next_cycle();
   cube.show();
 
   // Wait a small delay (max 10 fps to save power)

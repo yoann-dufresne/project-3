@@ -5,8 +5,9 @@
 
 
 
-GameEngine::GameEngine(Cube * cube) {
+GameEngine::GameEngine(Cube * cube, Animator * anim) {
 	this->cube = cube;
+	this->anim = anim;
 	this->current_lvl_start = 1;
 	this->program_pointer = 1;
 	
@@ -42,7 +43,7 @@ Level * GameEngine::load_next_lvl() {
 	switch (lvl_type) {
 	case 'L':
 		lvl = Labyrinth::lvl_from_memory(
-				this->cube,
+				this->cube, this->anim,
 				this->program_pointer);
 		break;
 	}

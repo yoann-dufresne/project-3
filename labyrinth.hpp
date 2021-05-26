@@ -64,7 +64,7 @@ public:
 	bool completed;
 	bool win;
 
-	Labyrinth(Cube * cube) : Level(cube) {
+	Labyrinth(Cube * cube, Animator * anim) : Level(cube, anim) {
 		for (int f=0 ; f<6 ; f++)
 			for (int r=0 ; r<4 ; r++)
 				for (int c=0 ; c<4 ; c++)
@@ -110,11 +110,11 @@ public:
 	  * - 1 byte for num of object used in the labyrinth
 	  * - 4 bytes per object in the lab (1 for obj type + 3 for coordinates)
 	  **/
-	static Level * lvl_from_memory(Cube * cube, uint32_t & pp) {
+	static Level * lvl_from_memory(Cube * cube, Animator * anim, uint32_t & pp) {
 		// Serial.print("Laby size ");Serial.println(sizeof(Labyrinth));
 		// Serial.print("Enemy size ");Serial.println(sizeof(Enemy));
 
-		Labyrinth * laby = new Labyrinth(cube);
+		Labyrinth * laby = new Labyrinth(cube, anim);
 
 	 	// Init faces and walls
 	 	uint8_t nb_faces = prog(pp);
@@ -137,8 +137,7 @@ public:
 		uint8_t * coords_uint = faces;
 		for (int c=0 ; c<3 ; c++)
 			coords_uint[c] = prog(pp++);
-		Coordinates coords(coords_uint);
-		laby->init_hero(coords);
+		Coordinates hero_coords(coords_uint);
 
 		// Lab objects
 		uint8_t nb_objects = prog(pp++);
@@ -168,6 +167,7 @@ public:
 			laby->init_object(lo);
 		}
 
+		laby->init_hero(hero_coords);
 		return laby;
 	}
 };

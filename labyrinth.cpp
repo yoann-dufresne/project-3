@@ -2,6 +2,8 @@
 
 #include "labyrinth.hpp"
 
+#define NEI_COLOR 0,0,30
+
 
 Labyrinth::~Labyrinth() {
 	for (int i=0 ; i<this->next_free ; i++)
@@ -106,6 +108,57 @@ void hero_mv_east(keyEvent evt) {
 void (*callbacks[4])(keyEvent) = {hero_mv_north, hero_mv_west, hero_mv_south, hero_mv_east};
 
 
+class SuroundColorCycles: public Animation {
+private:
+	uint8_t colors[12];
+	Coordinates coords[4];
+	uint8_t to_animate;
+	bool blue_turn;
+
+public:
+	SuroundColorCycles(Coordinates * coords, uint8_t * colors, uint8_t to_animate) : Animation(500) {
+		memcpy(&this->coords, coords, 4 * sizeof(Coordinates));
+		memcpy(this->colors, colors, 12);
+		this->to_animate = to_animate;
+		this->blue_turn = false;
+	};
+
+	void cancel_animation(Cube * cube) {
+		for (uint8_t i=0 ; i<4 ; i++) {
+			if (((to_animate >> i) & 0b1) == 0)
+				continue;
+			cube->faces[this->coords[i].face()].set_pixel(
+					this->coords[i].row(), this->coords[i].col(),
+					this->colors[3 * i],
+					this->colors[3 * i + 1],
+					this->colors[3 * i + 2]
+			);
+		}
+	}
+
+	void next_frame(Cube * cube) {
+		for (uint8_t i=0 ; i<4 ; i++) {
+			if (((to_animate >> i) & 0b1) == 0)
+				continue;
+
+			if (blue_turn)
+				cube->faces[this->coords[i].face()].set_pixel(
+						this->coords[i].row(), this->coords[i].col(),
+						NEI_COLOR
+				);
+			else
+				cube->faces[this->coords[i].face()].set_pixel(
+						this->coords[i].row(), this->coords[i].col(),
+						this->colors[3 * i],
+						this->colors[3 * i + 1],
+						this->colors[3 * i + 2]
+				);
+		}
+		this->blue_turn = !this->blue_turn;
+	}
+};
+
+
 void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 	// Serial.println("Move");
 	uint8_t direction = args[0];
@@ -133,6 +186,9 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 		this->cube->faces[button_coords.face()].rm_pixel_color(
 			button_coords.row(), button_coords.col(),
 			255, 255, 0);
+
+		if (this->obj_refs[button_coords.face()][button_coords.row()][button_coords.col()] != 255)
+			anim->rm_animation(true);
 	}
 	
 	// Remove the hero from previous tile
@@ -154,6 +210,7 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 		return;
 
 	// Decide move buttons
+	bool animation_needed = false;
 	walls = this->get_walls(coords);
 	for (uint8_t i=0 ; i<4 ; i++) {
 		// If there is a wall, nothing to do
@@ -165,8 +222,12 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 		Coordinates button_coords(coords);
 		Coordinates::next_coord(button_coords, i);
 
-		// Remove coridor color
-		this->cube->faces[button_coords.face()].add_pixel_color(button_coords.row(), button_coords.col(), 0, 0, 30);
+		// Add animation
+		if (this->obj_refs[button_coords.face()][button_coords.row()][button_coords.col()] != 255)
+			animation_needed = true;
+		// Add coridor color
+		else
+			this->cube->faces[button_coords.face()].add_pixel_color(button_coords.row(), button_coords.col(), NEI_COLOR);
 
 		// Set the button callback
     current_laby = this;
@@ -174,6 +235,36 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
     	button_coords.row(), button_coords.col(), SEESAW_KEYPAD_EDGE_RISING);
     this->cube->faces[button_coords.face()].bind_btn_callback(
     	button_coords.row(), button_coords.col(), callbacks[i]);
+	}
+
+	// Create animation for overlays
+	if (animation_needed) {
+		Coordinates neighbors[4];
+		uint8_t colors[12];
+		uint8_t animate = 0;
+
+		for (uint8_t i=0 ; i<4 ; i++) {
+			// Get the nieghbor coordinates
+			neighbors[i] = Coordinates(coords);
+			Coordinates::next_coord(neighbors[i], i);
+
+			if (!((walls >> i) & 0b1) and this->obj_refs[neighbors[i].face()][neighbors[i].row()][neighbors[i].col()] != 255) {
+				animate |= 1 << i;
+				this->cube->faces[neighbors[i].face()].get_pixel(neighbors[i].row(), neighbors[i].col(),
+						colors[3 * i], colors[3 * i + 1], colors[3 * i + 2]);
+			}
+		}
+
+		this->anim->add_animation(new SuroundColorCycles(neighbors, colors, animate));
+		// Init anim
+		for (uint8_t i=0 ; i<4 ; i++) {
+			if (((animate >> i) & 0b1) == 0)
+				continue;
+			this->cube->faces[neighbors[i].face()].set_pixel(
+					neighbors[i].row(), neighbors[i].col(),
+					NEI_COLOR
+			);
+		}
 	}
 }
 

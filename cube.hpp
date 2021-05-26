@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "Adafruit_NeoTrellis.h"
 
+#define REFRESH_DELAY 100
 #define INT_PIN 10
 
 
@@ -24,22 +25,22 @@ public:
   void init(int addr, int rotation);
   
   // Set one pixel to the rgb color
-  void set_pixel(int row, int col, int r, int g, int b);
+  void set_pixel(uint8_t row, uint8_t col, uint8_t r, uint8_t g, uint8_t b);
   // Get the rgb colors of one pixel
-  void get_pixel(int row, int col, int & r, int & g, int & b);
+  void get_pixel(uint8_t row, uint8_t col, uint8_t & r, uint8_t & g, uint8_t & b);
   // Add the rgb colors to the current colors of a pixel. ie: for each color max between the current value and the value added.
-  void add_pixel_color(int row, int col, int r, int g, int b);
+  void add_pixel_color(uint8_t row, uint8_t col, uint8_t r, uint8_t g, uint8_t b);
   // Rm the rgb colors to the current colors of a pixel. ie: for each color min between the current value and the value added.
-  void rm_pixel_color(int row, int col, int r, int g, int b);
+  void rm_pixel_color(uint8_t row, uint8_t col, uint8_t r, uint8_t g, uint8_t b);
 
   void show();
   void reset_leds();
   void see_idx(int idx);
 
-  void activate_btn(int row, int col, uint8_t event);
-  void deactivate_btn(int row, int col, uint8_t event);
-  void bind_btn_callback(int row, int col, TrellisCallback cb);
-  void unbind_btn_callback(int row, int col);
+  void activate_btn(uint8_t row, uint8_t col, uint8_t event);
+  void deactivate_btn(uint8_t row, uint8_t col, uint8_t event);
+  void bind_btn_callback(uint8_t row, uint8_t col, TrellisCallback cb);
+  void unbind_btn_callback(uint8_t row, uint8_t col);
 };
 
 

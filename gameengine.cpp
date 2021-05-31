@@ -23,6 +23,7 @@ Level * GameEngine::reload_lvl() {
 
 
 Level * GameEngine::load_next_lvl() {
+	Serial.println("load lvl");delay(10);
 	// If no lvl left
 	if (this->nb_lvl == 0) {
 		this->nb_lvl = prog(0);
@@ -35,6 +36,7 @@ Level * GameEngine::load_next_lvl() {
 	// Serial.println("Lvl type");
 	// Get the correct level type
 	uint8_t lvl_type = prog(this->program_pointer);
+	// Serial.println((char)lvl_type);
 	this->program_pointer += 1;
 
 	// Serial.println("Switch");
@@ -48,6 +50,7 @@ Level * GameEngine::load_next_lvl() {
 		break;
 	}
 
+	// Serial.println();
 	this->nb_lvl -= 1;
 	return lvl;
 }

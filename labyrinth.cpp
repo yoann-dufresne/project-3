@@ -14,15 +14,20 @@ Labyrinth::~Labyrinth() {
 
 // ----- Walls -----
 
-void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * walls) {
-	this->nb_faces = nb_faces;
-	memcpy(this->faces, faces, nb_faces);
+// void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * walls) {
+// 	this->nb_faces = nb_faces;
+// 	memcpy(this->faces, faces, nb_faces);
 
-	for (uint8_t n=0 ; n<nb_faces ; n++) {
-		uint8_t face_idx = this->faces[n];
-		memcpy(this->intern_walls + 3 * face_idx, walls + 5 * n, 3);
-		memcpy(this->extern_walls + 2 * face_idx, walls + 5 * n + 3, 2);
-	}
+// 	for (uint8_t n=0 ; n<nb_faces ; n++) {
+// 		uint8_t face_idx = this->faces[n];
+// 		memcpy(this->intern_walls + 3 * face_idx, walls + 5 * n, 3);
+// 		memcpy(this->extern_walls + 2 * face_idx, walls + 5 * n + 3, 2);
+// 	}
+// }
+
+void Labyrinth::init_walls(uint8_t face, uint8_t * walls) {
+	memcpy(this->intern_walls + 3 * face, walls, 3);
+	memcpy(this->extern_walls + 2 * face, walls + 3, 2);
 }
 
 uint8_t Labyrinth::get_walls(Coordinates & coords) {

@@ -65,6 +65,10 @@ public:
     this->compact_coords = 0xFF;
   }
 
+  Coordinates(uint8_t compacted_coords) {
+    this->compact_coords = compacted_coords;
+  }
+
   Coordinates(uint8_t face, uint8_t row, uint8_t col) {
     this->compact_coords = ((face & 0b111) << 4) | ((row & 0b11) << 2) | (col & 0b11);
   }

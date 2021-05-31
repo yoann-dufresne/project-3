@@ -50,8 +50,8 @@ public:
 
 class Labyrinth : public Level {
 private:
-	uint8_t nb_faces;
-	uint8_t faces[6];
+	// uint8_t nb_faces;
+	// uint8_t faces[6];
 	uint8_t intern_walls[3*6];
 	uint8_t extern_walls[2*6];
 
@@ -83,8 +83,7 @@ public:
 
 	/** Declare the used faces and their walls.
 	  * 
-	  * @param nb_faces number of faces used in this labyrinthe.
-	  * @param faces Index of used faces.
+	  * @param face The face index to update.
 	  * @param intern_walls 3 bytes per face used where each bit represent a wall.
 	  * The first 12 bits correspond to the 12 vertical walls from top left to bottom right,
 	  * row by row. The 12 nexts bits are the vertical walls olumn by column.
@@ -93,7 +92,7 @@ public:
 	  * a face. From corner top left, the walls are in the same order than the trigonometric
 	  * direction (counter clockwise).
 	  **/
-	void init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * walls);
+	void init_walls(uint8_t face, uint8_t * walls);
 	uint8_t get_walls(Coordinates & coords);
 
 	void init_hero(Coordinates & coordinates);
@@ -117,49 +116,42 @@ public:
 		Labyrinth * laby = new Labyrinth(cube, anim);
 
 	 	// Init faces and walls
-	 	uint8_t nb_faces = prog(pp);
-	 	pp += 1;
-	 	uint8_t faces[6];
-	 	uint8_t walls[30];
-	 	for (int f=0 ; f<nb_faces ; f++) {
-	 		// Load faces names from memory
-			faces[f] = prog(pp + f);
+	 	uint8_t used_faces = prog(pp++);
+	 	uint8_t hero_compact_coords = prog(pp++);
+	 	// Serial.print(used_faces);Serial.print(" ");Serial.println(hero_compact_coords);delay(10);
+
+	 	uint8_t walls[5];
+	 	for (int f=0 ; f<6 ; f++) {
+	 		if (not (used_faces >> f & 0b1))
+	 			continue;
+
 			// Load from memory the 5 walls bytes
-			for (int w=0 ; w<5 ; w++) {
-				walls[w] = prog(pp + nb_faces + f * 5 + w);
-			}
+			for (int w=0 ; w<5 ; w++)
+				walls[w] = prog(pp++);
+
+			laby->init_walls(f, walls);
 		}
 
-		laby->init_walls(nb_faces, faces, walls);
-		pp += 6 * nb_faces;
-
-		// Init hero
-		uint8_t * coords_uint = faces;
-		for (int c=0 ; c<3 ; c++)
-			coords_uint[c] = prog(pp++);
-		Coordinates hero_coords(coords_uint);
+		// Serial.println("Walls ok");delay(10);
 
 		// Lab objects
 		uint8_t nb_objects = prog(pp++);
 		laby->set_nb_objects(nb_objects);
-
+		// Serial.print("nb objs: ");Serial.println(nb_objects);delay(10);
 		for (int i=0 ; i<nb_objects ; i++) {
 			uint8_t obj_type = prog(pp++);
+			// Serial.print("type ");Serial.println(obj_type);delay(10);
+			uint8_t obj_compact_coords = prog(pp++);
+			// Serial.print("obj coords ");Serial.println(obj_compact_coords);delay(10);
+			Coordinates obj_coords(obj_compact_coords);
 
-			Coordinates obj_coords;
 			LabObject * lo;
 			switch(obj_type) {
 			case 'w':
-				for (int c=0 ; c<3 ; c++)
-					coords_uint[c] = prog(pp++);
-				obj_coords = Coordinates(coords_uint);
 				lo = new WinPoint(obj_coords);
 				break;
 
-			case 'l':
-				for (int c=0 ; c<3 ; c++)
-					coords_uint[c] = prog(pp++);
-				obj_coords = Coordinates(coords_uint);
+			case 'e':
 				lo = new Enemy(obj_coords);
 				break;
 			}
@@ -167,6 +159,8 @@ public:
 			laby->init_object(lo);
 		}
 
+		// Init hero
+		Coordinates hero_coords(hero_compact_coords);
 		laby->init_hero(hero_coords);
 		return laby;
 	}

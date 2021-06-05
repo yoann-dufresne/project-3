@@ -35,7 +35,7 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 
   // North
   if (coords.row() == 0) {
-    walls |= (this->extern_walls[coords.face() * 2 + 1] >> coords.col()) & 0b1;
+    walls |= (this->extern_walls[2 * coords.face() + 1] >> (coords.col())) & 0b1;
   } else {
     int wall_idx = 12 + 3 * coords.col() + coords.row() - 1;
     int byte_idx = wall_idx / 8;
@@ -44,7 +44,7 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 
   // West
   if (coords.col() == 0) {
-    walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (7 - coords.row())) & 0b1) << 1;
+    walls |= ((this->extern_walls[2 * coords.face() + 0] >> (7 - coords.row())) & 0b1) << 1;
   } else {
     int wall_idx = 3 * coords.row() + coords.col() - 1;
     int byte_idx = wall_idx / 8;
@@ -53,7 +53,7 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 
   // South
   if (coords.row() == 3) {
-    walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (3 - coords.col())) & 0b1) << 2;
+    walls |= ((this->extern_walls[2 * coords.face() + 0] >> (3 - coords.col())) & 0b1) << 2;
   } else {
     int wall_idx = 12 + 3 * coords.col() + coords.row();
     int byte_idx = wall_idx / 8;
@@ -62,7 +62,7 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 
   // East
   if (coords.col() == 3) {
-    walls |= ((this->extern_walls[coords.face() * 2 + 1] >> (4 + coords.row())) & 0b1) << 3;
+    walls |= ((this->extern_walls[2 * coords.face() + 1] >> (4 + coords.row())) & 0b1) << 3;
   } else {
     int wall_idx = 3 * coords.row() + coords.col();
     int byte_idx = wall_idx / 8;
@@ -71,6 +71,48 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
 
   return walls;
 }
+
+// uint8_t Labyrinth::get_walls(Coordinates & coords) {
+// 	uint8_t walls = 0;
+
+//   // North
+//   if (coords.row() == 0) {
+//     walls |= (this->extern_walls[coords.face() * 2 + 1] >> coords.col()) & 0b1;
+//   } else {
+//     int wall_idx = 12 + 3 * coords.col() + coords.row() - 1;
+//     int byte_idx = wall_idx / 8;
+//     walls |= (this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
+//   }
+
+//   // West
+//   if (coords.col() == 0) {
+//     walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (7 - coords.row())) & 0b1) << 1;
+//   } else {
+//     int wall_idx = 3 * coords.row() + coords.col() - 1;
+//     int byte_idx = wall_idx / 8;
+//     walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
+//   }
+
+//   // South
+//   if (coords.row() == 3) {
+//     walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (3 - coords.col())) & 0b1) << 2;
+//   } else {
+//     int wall_idx = 12 + 3 * coords.col() + coords.row();
+//     int byte_idx = wall_idx / 8;
+//     walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
+//   }
+
+//   // East
+//   if (coords.col() == 3) {
+//     walls |= ((this->extern_walls[coords.face() * 2 + 1] >> (4 + coords.row())) & 0b1) << 3;
+//   } else {
+//     int wall_idx = 3 * coords.row() + coords.col();
+//     int byte_idx = wall_idx / 8;
+//     walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
+//   }
+
+//   return walls;
+// }
 
 
 // ----- Hero -----

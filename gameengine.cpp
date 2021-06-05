@@ -23,7 +23,7 @@ Level * GameEngine::reload_lvl() {
 
 
 Level * GameEngine::load_next_lvl() {
-	Serial.println("load lvl");delay(10);
+	// Serial.println("load lvl");delay(10);
 	// If no lvl left
 	if (this->nb_lvl == 0) {
 		this->nb_lvl = prog(0);
@@ -52,5 +52,6 @@ Level * GameEngine::load_next_lvl() {
 
 	// Serial.println();
 	this->nb_lvl -= 1;
+	Serial.println("loaded");
 	return lvl;
 }

@@ -14,16 +14,6 @@ Labyrinth::~Labyrinth() {
 
 // ----- Walls -----
 
-// void Labyrinth::init_walls(uint8_t nb_faces, uint8_t * faces, uint8_t * walls) {
-// 	this->nb_faces = nb_faces;
-// 	memcpy(this->faces, faces, nb_faces);
-
-// 	for (uint8_t n=0 ; n<nb_faces ; n++) {
-// 		uint8_t face_idx = this->faces[n];
-// 		memcpy(this->intern_walls + 3 * face_idx, walls + 5 * n, 3);
-// 		memcpy(this->extern_walls + 2 * face_idx, walls + 5 * n + 3, 2);
-// 	}
-// }
 
 void Labyrinth::init_walls(uint8_t face, uint8_t * walls) {
 	memcpy(this->intern_walls + 3 * face, walls, 3);
@@ -72,66 +62,8 @@ uint8_t Labyrinth::get_walls(Coordinates & coords) {
   return walls;
 }
 
-// uint8_t Labyrinth::get_walls(Coordinates & coords) {
-// 	uint8_t walls = 0;
-
-//   // North
-//   if (coords.row() == 0) {
-//     walls |= (this->extern_walls[coords.face() * 2 + 1] >> coords.col()) & 0b1;
-//   } else {
-//     int wall_idx = 12 + 3 * coords.col() + coords.row() - 1;
-//     int byte_idx = wall_idx / 8;
-//     walls |= (this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1;
-//   }
-
-//   // West
-//   if (coords.col() == 0) {
-//     walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (7 - coords.row())) & 0b1) << 1;
-//   } else {
-//     int wall_idx = 3 * coords.row() + coords.col() - 1;
-//     int byte_idx = wall_idx / 8;
-//     walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 1;
-//   }
-
-//   // South
-//   if (coords.row() == 3) {
-//     walls |= ((this->extern_walls[coords.face() * 2 + 0] >> (3 - coords.col())) & 0b1) << 2;
-//   } else {
-//     int wall_idx = 12 + 3 * coords.col() + coords.row();
-//     int byte_idx = wall_idx / 8;
-//     walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 2;
-//   }
-
-//   // East
-//   if (coords.col() == 3) {
-//     walls |= ((this->extern_walls[coords.face() * 2 + 1] >> (4 + coords.row())) & 0b1) << 3;
-//   } else {
-//     int wall_idx = 3 * coords.row() + coords.col();
-//     int byte_idx = wall_idx / 8;
-//     walls |= ((this->intern_walls[coords.face() * 3 + byte_idx] >> (7 - (wall_idx % 8))) & 0b1) << 3;
-//   }
-
-//   return walls;
-// }
-
 
 // ----- Hero -----
-
-void Labyrinth::init_hero(Coordinates & coords) {
-	this->hero = Coordinates(coords);
-
-	if (this->hero.row() == 0) {
-		this->hero = Coordinates(coords.face(), 1, coords.col());
-		uint8_t direction = 0;
-		this->hero_move(this->hero, &direction);
-	} else {
-		this->hero = Coordinates(coords.face(), coords.row() - 1, coords.col());;
-		uint8_t direction = 2;
-		this->hero_move(this->hero, &direction);
-	}
-}
-
-
 
 Labyrinth * current_laby;
 
@@ -206,10 +138,8 @@ public:
 };
 
 
-void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
-	// Serial.println("Move");
-	uint8_t direction = args[0];
-
+void Labyrinth::hero_remove() {
+	Coordinates coords(this->hero);
 	// Remove previous button interactions
 	uint8_t walls = this->get_walls(coords);
 	for (uint8_t i=0 ; i<4 ; i++) {
@@ -242,23 +172,17 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 	this->cube->faces[coords.face()].set_pixel(coords.row(), coords.col(), 0, 0, 0);
 	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255)
 		this->obj_list[this->obj_refs[coords.face()][coords.row()][coords.col()]]->set_colors(*this);
+}
 
-	// Move in memory to next tile
-	Coordinates::next_coord(coords, direction);
-
+void Labyrinth::hero_add(Coordinates & coords) {
 	// Show in new position
 	this->cube->faces[coords.face()].set_pixel(coords.row(), coords.col(), 50, 50, 50);
-
-	// Activate object if present
-	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255)
-		this->obj_list[this->obj_refs[coords.face()][coords.row()][coords.col()]]->activate(*this);
-
-	if (this->completed)
-		return;
+	// Serial.print("mem ");Serial.println(freeMemory());delay(10);
 
 	// Decide move buttons
 	bool animation_needed = false;
-	walls = this->get_walls(coords);
+	uint8_t walls = this->get_walls(coords);
+	// Serial.println("buttons");delay(10);
 	for (uint8_t i=0 ; i<4 ; i++) {
 		// If there is a wall, nothing to do
 		if ((walls >> i) & 0b1) {
@@ -269,12 +193,14 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 		Coordinates button_coords(coords);
 		Coordinates::next_coord(button_coords, i);
 
+		// Serial.print("mem ");Serial.println(freeMemory());delay(10);
 		// Add animation
 		if (this->obj_refs[button_coords.face()][button_coords.row()][button_coords.col()] != 255)
 			animation_needed = true;
 		// Add coridor color
 		else
 			this->cube->faces[button_coords.face()].add_pixel_color(button_coords.row(), button_coords.col(), NEI_COLOR);
+
 
 		// Set the button callback
     current_laby = this;
@@ -283,6 +209,7 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
     this->cube->faces[button_coords.face()].bind_btn_callback(
     	button_coords.row(), button_coords.col(), callbacks[i]);
 	}
+	this->hero = Coordinates(coords);
 
 	// Create animation for overlays
 	if (animation_needed) {
@@ -313,6 +240,26 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 			);
 		}
 	}
+}
+
+
+void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
+	uint8_t direction = args[0];
+
+	this->hero_remove();
+	// Move in memory to next tile
+	Coordinates::next_coord(coords, direction);
+
+	// Make hero appear on new tile
+	this->hero_add(coords);
+
+	// Activate object if present
+	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255)
+		this->obj_list[this->obj_refs[coords.face()][coords.row()][coords.col()]]->activate(*this);
+
+	if (this->completed)
+		return;
+	
 }
 
 
@@ -362,4 +309,18 @@ void Enemy::activate(Labyrinth & laby) {
 
 	laby.completed = true;
 	laby.win = false;
+}
+
+
+	
+void Teleporter::set_colors(Labyrinth & laby) {
+	laby.cube->faces[this->coordinates.face()].add_pixel_color(
+		this->coordinates.row(), this->coordinates.col(),
+		25, 15, 0
+	);	
+}
+
+void Teleporter::activate(Labyrinth & laby) {
+	laby.hero_remove();
+	laby.hero_add(this->target);
 }

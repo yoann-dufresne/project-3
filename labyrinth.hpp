@@ -46,6 +46,17 @@ public:
 	void activate(Labyrinth & laby);
 };
 
+class Teleporter : public LabObject {
+public:
+	Coordinates target;
+	Teleporter(Coordinates & source, Coordinates & target) : LabObject(source) {
+		this->target = Coordinates(target);
+	};
+	
+	void set_colors(Labyrinth & laby);
+	void activate(Labyrinth & laby);
+};
+
 
 
 class Labyrinth : public Level {
@@ -95,7 +106,8 @@ public:
 	void init_walls(uint8_t face, uint8_t * walls);
 	uint8_t get_walls(Coordinates & coords);
 
-	void init_hero(Coordinates & coordinates);
+	void hero_remove();
+	void hero_add(Coordinates & coordinates);
 	void hero_move(Coordinates & coordinates, uint8_t * args);
 
 	void set_nb_objects(uint8_t nb_objects);
@@ -140,7 +152,6 @@ public:
 		// Serial.print("nb objs: ");Serial.println(nb_objects);delay(10);
 		for (int i=0 ; i<nb_objects ; i++) {
 			uint8_t obj_type = prog(pp++);
-			// Serial.print("type ");Serial.println(obj_type);delay(10);
 			uint8_t obj_compact_coords = prog(pp++);
 			// Serial.print("obj coords ");Serial.println(obj_compact_coords);delay(10);
 			Coordinates obj_coords(obj_compact_coords);
@@ -154,6 +165,12 @@ public:
 			case 'e':
 				lo = new Enemy(obj_coords);
 				break;
+
+			case 't':
+				uint8_t compact_target = prog(pp++);
+				Coordinates target(compact_target);
+				lo = new Teleporter(obj_coords, target);
+				break;
 			}
 
 			laby->init_object(lo);
@@ -161,7 +178,7 @@ public:
 
 		// Init hero
 		Coordinates hero_coords(hero_compact_coords);
-		laby->init_hero(hero_coords);
+		laby->hero_add(hero_coords);
 		return laby;
 	}
 };

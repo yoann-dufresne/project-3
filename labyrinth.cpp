@@ -6,6 +6,8 @@
 
 
 Labyrinth::~Labyrinth() {
+	this->hero_remove();
+	
 	for (int i=0 ; i<this->next_free ; i++)
 		delete this->obj_list[i];
 	delete[] this->obj_list;

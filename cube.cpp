@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "cube.hpp"
+#include "freemem.h"
 
 
 void rot(uint8_t & row, uint8_t & col, uint8_t rotation) {
@@ -36,7 +37,10 @@ void Face::init(int addr, int rotation) {
 
 	this->rotation = rotation;
 
+	int mem_val = freeMemory();
+	// Serial.print("Before NeoTrellis init ");Serial.println(freeMemory());delay(10);
   this->trellis = new Adafruit_NeoTrellis(addr);
+	// Serial.print("After NeoTrellis init ");;Serial.println(freeMemory());Serial.println();delay(10);
   if (!this->trellis->begin(addr)) {
     this->is_init = false;
   } else {
@@ -159,6 +163,7 @@ void Cube::init() {
 	int addrs[6] = {0x2E, 0x2F, 0x30, 0x36, 0x32, 0x3E};
 	int rotations[6] = {2, 0, 3, 1, 3, 1};
 	for (int i=0 ; i<6 ; i++) {
+		int mem = freeMemory();
 		this->faces[i].init(addrs[i], rotations[i]);
 	}
 

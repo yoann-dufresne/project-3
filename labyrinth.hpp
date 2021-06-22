@@ -7,6 +7,7 @@
 #include "cube.hpp"
 #include "gameengine.hpp"
 #include "progreader.hpp"
+#include "animator.hpp"
 
 #include "Arduino.h"
 
@@ -72,6 +73,7 @@ public:
 	uint8_t obj_refs[6][4][4];
 
 	Coordinates hero;
+	Animation * hero_anim;
 	bool completed;
 	bool win;
 
@@ -83,6 +85,7 @@ public:
 
 		this->completed = false;
 		this->win = false;
+		this->hero_anim = nullptr;
 
 		this->next_free = 0;
 	}

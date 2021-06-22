@@ -117,7 +117,7 @@ public:
 		}
 	}
 
-	void next_frame(Cube * cube) {
+	bool next_frame(Cube * cube) {
 		for (uint8_t i=0 ; i<4 ; i++) {
 			if (((to_animate >> i) & 0b1) == 0)
 				continue;
@@ -136,6 +136,7 @@ public:
 				);
 		}
 		this->blue_turn = !this->blue_turn;
+		return true;
 	}
 };
 
@@ -166,8 +167,11 @@ void Labyrinth::hero_remove() {
 			button_coords.row(), button_coords.col(),
 			255, 255, 0);
 
-		if (this->obj_refs[button_coords.face()][button_coords.row()][button_coords.col()] != 255)
-			anim->rm_animation(true);
+		if (this->hero_anim != nullptr) {
+			this->anim->rm_animation(this->hero_anim);
+			delete this->hero_anim;
+			this->hero_anim = nullptr;
+		}
 	}
 	
 	// Remove the hero from previous tile
@@ -231,7 +235,8 @@ void Labyrinth::hero_add(Coordinates & coords) {
 			}
 		}
 
-		this->anim->add_animation(new SuroundColorCycles(neighbors, colors, animate));
+		this->hero_anim = new SuroundColorCycles(neighbors, colors, animate);
+		this->anim->add_animation(this->hero_anim);
 		// Init anim
 		for (uint8_t i=0 ; i<4 ; i++) {
 			if (((animate >> i) & 0b1) == 0)

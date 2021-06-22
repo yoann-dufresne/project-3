@@ -6,6 +6,7 @@
 
 
 Labyrinth::~Labyrinth() {
+	this->anim->clear();
 	this->hero_remove();
 	
 	for (int i=0 ; i<this->next_free ; i++)
@@ -261,8 +262,10 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 	this->hero_add(coords);
 
 	// Activate object if present
-	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255)
+	if (this->obj_refs[coords.face()][coords.row()][coords.col()] != 255) {
+		this->cube->show();
 		this->obj_list[this->obj_refs[coords.face()][coords.row()][coords.col()]]->activate(*this);
+	}
 
 	if (this->completed)
 		return;

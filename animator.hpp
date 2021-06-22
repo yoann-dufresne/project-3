@@ -14,6 +14,7 @@ public:
 			: nb_cycles(frame_delay / REFRESH_DELAY)
 			, next_anim(nullptr)
 	{};
+
 	virtual ~Animation(){};
 	/** Stop the animation and reset the state before animation.
 	  */
@@ -43,6 +44,7 @@ public:
 	  * It calls the cancel_animation method of the animation
 	  */
 	void rm_animation(Animation * anim);
+	void clear();
 	/** Tic the clock and trigger all the animations that needs refresh.
 	  * Each animation that terminates are automatically removed and deleted.
 	  */

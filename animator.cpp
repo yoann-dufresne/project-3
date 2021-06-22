@@ -30,6 +30,17 @@ void Animator::rm_animation(Animation * anim) {
 		current->next_anim = current->next_anim->next_anim;
 }
 
+void Animator::clear() {
+	Animation * current = this->animation;
+	Animation * next = nullptr;
+
+	while (current != nullptr) {
+		next = current->next_anim;
+		delete current;
+		current = next;
+	}
+}
+
 void Animator::next_cycle() {
 	Animation * current = this->animation;
 

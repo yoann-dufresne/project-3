@@ -299,10 +299,15 @@ void WinPoint::set_colors(Labyrinth & laby) {
 void WinPoint::activate(Labyrinth & laby) {
 	Cube * cube = laby.cube;
 
-	laby.completed = true;
-	laby.win = true;
+	// laby.completed = true;
+	// laby.win = true;
+	// delay(500);
 
-	delay(500);
+	laby.hero_remove();
+	laby.anim->clear();
+
+	Animation * anim = new PropagationAnim(100, this->coordinates.compact_coords, 0, 40, 0);
+	laby.anim->add_animation(anim);
 }
 
 void Enemy::set_colors(Labyrinth & laby) {

@@ -1,5 +1,4 @@
 #include <string.h>
-
 #include "labyrinth.hpp"
 
 #define NEI_COLOR 0,0,30
@@ -275,6 +274,7 @@ void Labyrinth::hero_move(Coordinates & coords, uint8_t * args) {
 
 // ----- Other objects -----
 
+
 void Labyrinth::set_nb_objects(uint8_t nb_objects) {
 	this->next_free = 0;
 	this->obj_list = new LabObject *[nb_objects];
@@ -295,20 +295,46 @@ void WinPoint::set_colors(Labyrinth & laby) {
 	);
 }
 
+class AnimWin : public PropagationAnim {
+public:
+	AnimWin (uint8_t coords) : PropagationAnim(100, coords, 0, 40, 0) {}
+
+	bool next_frame(Cube * cube) {
+		bool to_continue = PropagationAnim::next_frame(cube);
+
+		if (not to_continue) {
+			current_laby->completed = true;
+			current_laby->win = true;
+		}
+
+		return to_continue;
+	}
+};
+
 // Win animation
 void WinPoint::activate(Labyrinth & laby) {
-	Cube * cube = laby.cube;
-
-	// laby.completed = true;
-	// laby.win = true;
-	// delay(500);
-
 	laby.hero_remove();
 	laby.anim->clear();
-
-	Animation * anim = new PropagationAnim(100, this->coordinates.compact_coords, 0, 40, 0);
-	laby.anim->add_animation(anim);
+	laby.anim->add_animation(new AnimWin(this->coordinates.compact_coords));
 }
+
+
+class AnimLoose : public PropagationAnim {
+public:
+	AnimLoose (uint8_t coords) : PropagationAnim(100, coords, 40, 0, 0) {}
+
+	bool next_frame(Cube * cube) {
+		bool to_continue = PropagationAnim::next_frame(cube);
+
+		if (not to_continue) {
+			current_laby->completed = true;
+			current_laby->win = false;
+		}
+
+		return to_continue;
+	}
+};
+
 
 void Enemy::set_colors(Labyrinth & laby) {
 	// Serial.println("Set colors");
@@ -320,10 +346,9 @@ void Enemy::set_colors(Labyrinth & laby) {
 
 // Win animation
 void Enemy::activate(Labyrinth & laby) {
-	Cube * cube = laby.cube;
-
-	laby.completed = true;
-	laby.win = false;
+	laby.hero_remove();
+	laby.anim->clear();
+	laby.anim->add_animation(new AnimLoose(this->coordinates.compact_coords));
 }
 
 

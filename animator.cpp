@@ -14,6 +14,8 @@ void Animator::add_animation(Animation * animation) {
 }
 
 void Animator::rm_animation(Animation * anim) {
+	anim->cancel_animation(this->cube);
+
 	// If first animation
 	if (this->animation == anim) {
 		this->animation = anim->next_anim;

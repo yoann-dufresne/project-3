@@ -1,7 +1,5 @@
+#include "freemem.hpp"
 
-
-#ifndef FREE_H
-#define FREE_H
 
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
@@ -20,5 +18,3 @@ int freeMemory() {
   return __brkval ? &top - __brkval : &top - __malloc_heap_start;
 #endif  // __arm__
 }
-
-#endif

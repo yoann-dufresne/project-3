@@ -8,6 +8,7 @@
 #include "gameengine.hpp"
 #include "progreader.hpp"
 #include "animator.hpp"
+#include "freemem.hpp"
 
 #include "Arduino.h"
 
@@ -18,9 +19,9 @@ class LabObject {
 public:
 	Coordinates coordinates;
 
-	LabObject(uint8_t face, uint8_t row, uint8_t col) {
-		this->coordinates = Coordinates(face, row, col);
-	};
+	// LabObject(uint8_t face, uint8_t row, uint8_t col) {
+	// 	this->coordinates = Coordinates(face, row, col);
+	// };
 	LabObject(Coordinates & coordinates) {
 		this->coordinates = Coordinates(coordinates);
 	}
@@ -31,18 +32,23 @@ public:
 
 class WinPoint : public LabObject {
 public:
-	WinPoint(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
-	WinPoint(Coordinates & coordinates) : LabObject(coordinates) {};
+	// WinPoint(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
+	WinPoint(Coordinates & coordinates)
+			: LabObject(coordinates) {};
 
+	bool next_frame(Cube * cube);
 	void set_colors(Labyrinth & laby);
 	void activate(Labyrinth & laby);
 };
 
 class Enemy : public LabObject {
 public:
-	Enemy(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
-	Enemy(Coordinates & coordinates) : LabObject(coordinates) {};
+	Labyrinth * laby;
+	// Enemy(uint8_t face, uint8_t row, uint8_t col) : LabObject(face, row, col) {};
+	Enemy(Coordinates & coordinates)
+			: LabObject(coordinates) {};
 
+	bool next_frame(Cube * cube);
 	void set_colors(Labyrinth & laby);
 	void activate(Labyrinth & laby);
 };
@@ -125,15 +131,13 @@ public:
 	  * - 4 bytes per object in the lab (1 for obj type + 3 for coordinates)
 	  **/
 	static Level * lvl_from_memory(Cube * cube, Animator * anim, uint32_t & pp) {
-		// Serial.print("Laby size ");Serial.println(sizeof(Labyrinth));
-		// Serial.print("Enemy size ");Serial.println(sizeof(Enemy));
 
+		Serial.print("Before ");Serial.println(freeMemory());
 		Labyrinth * laby = new Labyrinth(cube, anim);
 
 	 	// Init faces and walls
 	 	uint8_t used_faces = prog(pp++);
 	 	uint8_t hero_compact_coords = prog(pp++);
-	 	// Serial.print(used_faces);Serial.print(" ");Serial.println(hero_compact_coords);delay(10);
 
 	 	uint8_t walls[5];
 	 	for (int f=0 ; f<6 ; f++) {
@@ -147,16 +151,12 @@ public:
 			laby->init_walls(f, walls);
 		}
 
-		// Serial.println("Walls ok");delay(10);
-
 		// Lab objects
 		uint8_t nb_objects = prog(pp++);
 		laby->set_nb_objects(nb_objects);
-		// Serial.print("nb objs: ");Serial.println(nb_objects);delay(10);
 		for (int i=0 ; i<nb_objects ; i++) {
 			uint8_t obj_type = prog(pp++);
 			uint8_t obj_compact_coords = prog(pp++);
-			// Serial.print("obj coords ");Serial.println(obj_compact_coords);delay(10);
 			Coordinates obj_coords(obj_compact_coords);
 
 			LabObject * lo;
@@ -182,6 +182,7 @@ public:
 		// Init hero
 		Coordinates hero_coords(hero_compact_coords);
 		laby->hero_add(hero_coords);
+		Serial.print("Initiated ");Serial.println(freeMemory());
 		return laby;
 	}
 };

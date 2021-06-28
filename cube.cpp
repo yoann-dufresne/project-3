@@ -1,7 +1,7 @@
 #include <math.h>
 
 #include "cube.hpp"
-#include "freemem.h"
+#include "freemem.hpp"
 
 
 void rot(uint8_t & row, uint8_t & col, uint8_t rotation) {
